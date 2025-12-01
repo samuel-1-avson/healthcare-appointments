@@ -1,0 +1,93 @@
+# Healthcare Appointments Pipeline Configuration
+# ==============================================
+
+# Project metadata
+project:
+  name: "Healthcare Appointments No-Show Analysis"
+  version: "1.0.0"
+  author: "Data Analytics Team"
+
+# Data paths
+paths:
+  data_dir: "data"
+  raw_data: "data/raw/appointments_raw.csv"
+  processed_data: "data/processed/appointments_cleaned.csv"
+  features_data: "data/processed/appointments_features.csv"
+  database: "healthcare.db"
+  outputs_dir: "outputs"
+  figures_dir: "outputs/figures"
+  reports_dir: "outputs/reports"
+  sql_dir: "outputs/sql"
+
+# Data source
+source:
+  url: "https://raw.githubusercontent.com/datasets/no-show-appointments/main/data/KaggleV2-May-2016.csv"
+  encoding: "latin-1"
+
+# Data cleaning parameters
+cleaning:
+  max_age: 100
+  min_age: 0
+  date_format: "%Y-%m-%d"
+  date_columns:
+    - "ScheduledDay"
+    - "AppointmentDay"
+  
+  # Column mapping for standardization
+  column_mapping:
+    "No-show": "No_show"
+    "Hipertension": "Hypertension"
+    "Handcap": "Handicap"
+
+# Feature engineering parameters
+features:
+  # Age groups
+  age_bins: [0, 12, 18, 35, 50, 65, 100]
+  age_labels: ["Child", "Teen", "Young Adult", "Adult", "Middle Age", "Senior"]
+  
+  # Lead time categories
+  lead_time_bins: [-1, 0, 7, 14, 30, 365]
+  lead_time_labels: ["Same Day", "1-7 days", "8-14 days", "15-30 days", "30+ days"]
+  
+  # Risk scoring weights
+  risk_weights:
+    patient_history: 3.0
+    lead_time: 2.5
+    day_of_week: 1.5
+    age: 2.0
+    sms: 1.0
+    health: 1.5
+    socioeconomic: 1.5
+    neighborhood: 2.0
+  
+  # Risk tier thresholds
+  risk_thresholds:
+    critical: 3.5
+    high: 3.0
+    medium: 2.5
+    low: 2.0
+
+# Business parameters
+business:
+  cost_per_noshow: 150
+  target_noshow_rate: 0.15
+  current_noshow_rate: 0.202
+
+# Visualization settings
+visualization:
+  figure_size: [12, 8]
+  dpi: 150
+  style: "seaborn-v0_8-darkgrid"
+  color_palette: "husl"
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "pipeline.log"
+
+# Pipeline settings
+pipeline:
+  save_intermediate: true
+  verbose: true
+  random_seed: 42
