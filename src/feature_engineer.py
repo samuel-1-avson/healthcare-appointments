@@ -131,6 +131,10 @@ class FeatureEngineer:
             self.logger.warning("Lead_days column not found, creating it first...")
             df = self.create_lead_time(df)
         
+        if 'lead_days' not in df.columns:
+            self.logger.warning("Lead_days column still not found after attempt to create it")
+            return df
+        
         lead_bins = self.config['features']['lead_time_bins']
         lead_labels = self.config['features']['lead_time_labels']
         
