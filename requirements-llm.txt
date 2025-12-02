@@ -1,0 +1,59 @@
+# requirements-llm.txt
+# ==============================================
+# LLM & GenAI Dependencies (Month 3)
+# Fixed version for compatibility
+# ==============================================
+
+# ============================================
+# IMPORTANT: If you're using Python 3.14, 
+# consider downgrading to Python 3.11 or 3.12
+# for better package compatibility.
+# ============================================
+
+# Core LLM Providers (Required)
+openai>=1.12.0,<2.0.0
+anthropic>=0.18.0,<1.0.0
+
+# LangChain Core (Required)
+langchain>=0.2.0,<0.3.0
+langchain-core>=0.2.0,<0.3.0
+langchain-openai>=0.1.0,<0.2.0
+langchain-community>=0.2.0,<0.3.0
+
+# Optional: Anthropic integration
+# langchain-anthropic>=0.1.1,<0.2.0
+
+# Tokenization (Required)
+tiktoken>=0.5.0,<1.0.0
+
+# Vector Store - FAISS only (lighter weight)
+faiss-cpu>=1.7.4,<1.8.0
+
+# Skip chromadb - we use FAISS
+# chromadb>=0.4.22
+
+# Skip sentence-transformers initially - can add later if needed
+# sentence-transformers>=2.3.0
+
+# Skip heavy ML dependencies for now
+# torch
+# transformers
+
+# RAG Evaluation
+# ragas>=0.1.4  # Install separately if needed
+datasets>=2.14.0,<3.0.0
+
+# Utilities (Required)
+python-dotenv>=1.0.0
+tenacity>=8.2.0,<9.0.0
+rich>=13.0.0
+
+# Async support
+aiohttp>=3.9.0
+httpx>=0.26.0
+
+# Tracing & Observability (Optional)
+langsmith>=0.1.0,<0.2.0
+
+# JSON handling
+orjson>=3.9.0

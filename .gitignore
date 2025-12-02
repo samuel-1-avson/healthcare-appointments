@@ -22,12 +22,33 @@ htmlcov/
 
 # Logs
 *.log
+logs*.txt
 
 # Project specific
 data/
 outputs/
 results/
+models/
+*.joblib
 
 # IDE
 .vscode/
 .idea/
+
+# Environment variables
+.env
+
+# Virtual Environment
+venv/
+env/
+
+# Test outputs
+test_output_*.txt
+*_output.txt
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Node modules
+node_modules/

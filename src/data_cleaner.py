@@ -105,7 +105,7 @@ class DataCleaner:
                         if nat_count > 0:
                             self.logger.warning(f"Found {nat_count} invalid dates in {col}")
                             # Forward fill or backward fill for invalid dates
-                            df[col].fillna(method='ffill', inplace=True)
+                            df[col] = df[col].fillna(method='ffill')
                         
                         dates_fixed.append(col)
                         self.logger.info(f"Fixed dates in column: {col}")
@@ -233,26 +233,26 @@ class DataCleaner:
                 
                 self.logger.info(f"  {col}: {missing_count} ({missing_pct:.1f}%)")
                 
-                # Strategy based on column type and missing percentage
-                if missing_pct > 50:
-                    # Too many missing, consider dropping
-                    self.logger.warning(f"  → High missing rate, keeping as is")
-                elif df[col].dtype in ['float64', 'int64']:
-                    # Numeric column - fill with median
-                    df[col].fillna(df[col].median(), inplace=True)
-                    self.logger.info(f"  → Filled with median: {df[col].median()}")
-                elif df[col].dtype == 'object':
-                    # Categorical column - fill with mode or 'Unknown'
-                    if df[col].mode().empty:
-                        df[col].fillna('Unknown', inplace=True)
+                # Fill missing values
+                if pd.api.types.is_numeric_dtype(df[col]):
+                    # Fill numeric with median
+                    median_val = df[col].median()
+                    df[col] = df[col].fillna(median_val)
+                    self.logger.info(f"    Filled {col} with median: {median_val}")
+                else:
+                    # Fill categorical with mode
+                    if not df[col].mode().empty:
+                        mode_val = df[col].mode()[0]
+                        df[col] = df[col].fillna(mode_val)
+                        self.logger.info(f"    Filled {col} with mode: {mode_val}")
                     else:
-                        df[col].fillna(df[col].mode()[0], inplace=True)
-                    self.logger.info(f"  → Filled with mode/unknown")
+                        # Fallback for empty columns or no mode
+                        df[col] = df[col].fillna("Unknown")
+                        self.logger.info(f"    Filled {col} with 'Unknown'")
             
+            # Track missing handled
             self.cleaning_report['missing_handled'] = missing_cols.to_dict()
-        else:
-            self.logger.info("No missing values found")
-        
+            
         return df
     
     def remove_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:

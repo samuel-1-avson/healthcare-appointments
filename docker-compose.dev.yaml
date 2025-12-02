@@ -1,0 +1,47 @@
+# docker-compose.dev.yaml
+# ============================================================
+# Development configuration with hot reload
+# 
+# Usage:
+#   docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up
+# ============================================================
+
+version: '3.8'
+
+services:
+  api:
+    build:
+      target: development
+    image: healthcare-noshow-api:dev
+    container_name: noshow-api-dev
+    
+    environment:
+      - NOSHOW_DEBUG=true
+      - NOSHOW_LOG_LEVEL=DEBUG
+      - NOSHOW_WORKERS=1
+    
+    # Mount source code for hot reload
+    volumes:
+      - ./src:/app/src:rw
+      - ./config:/app/config:rw
+      - ./prompts:/app/prompts:rw
+      - ./notebooks:/app/notebooks:rw
+      - ./data:/app/data:rw
+      - ./models:/app/models:rw
+      - ./evals:/app/evals:rw
+      - ./tests:/app/tests:rw
+    
+    # Override command for development
+    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/src"]
+    
+    # Less restrictive resource limits for dev
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+    
+    # Shorter health check intervals
+    healthcheck:
+      interval: 10s
+      start_period: 10s

@@ -1,0 +1,112 @@
+# API Configuration
+# =================
+# Configuration for the FastAPI prediction service
+
+# API Settings
+api:
+  title: "Healthcare No-Show Prediction API"
+  description: "ML-powered API for predicting appointment no-shows"
+  version: "1.0.0"
+  prefix: "/api/v1"
+  debug: false
+
+# Server Settings
+server:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 1
+  reload: false  # Set to true for development
+
+# Model Settings
+model:
+  # Path to production model
+  model_path: "models/production/model.joblib"
+  preprocessor_path: "models/production/preprocessor.joblib"
+  metadata_path: "models/production/model_metadata.json"
+  
+  # Model info
+  model_name: "random_forest"
+  model_version: "1.0.0"
+  
+  # Prediction settings
+  default_threshold: 0.5
+  return_probabilities: true
+
+# Feature Configuration
+features:
+  # Required input features (must match training)
+  required:
+    - age
+    - gender
+    - scholarship
+    - hypertension
+    - diabetes
+    - alcoholism
+    - handicap
+    - sms_received
+    - lead_days
+  
+  # Optional features (will use defaults if not provided)
+  optional:
+    - neighbourhood
+    - appointment_weekday
+    - appointment_month
+  
+  # Default values for optional features
+  defaults:
+    neighbourhood: "Unknown"
+    appointment_weekday: "Monday"
+    appointment_month: "January"
+
+# Risk Tier Configuration
+risk_tiers:
+  critical:
+    min_probability: 0.7
+    color: "#e74c3c"
+    intervention: "Immediate phone call + deposit required"
+  high:
+    min_probability: 0.5
+    color: "#e67e22"
+    intervention: "Phone call + double SMS reminder"
+  medium:
+    min_probability: 0.3
+    color: "#f1c40f"
+    intervention: "Double SMS reminder"
+  low:
+    min_probability: 0.15
+    color: "#2ecc71"
+    intervention: "Standard SMS reminder"
+  minimal:
+    min_probability: 0.0
+    color: "#27ae60"
+    intervention: "No additional intervention needed"
+
+# Logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  log_requests: true
+  log_predictions: true
+
+# CORS Settings (for web clients)
+cors:
+  enabled: true
+  origins:
+    - "http://localhost:3000"
+    - "http://localhost:8080"
+    - "*"  # Allow all origins (change in production)
+  methods:
+    - "GET"
+    - "POST"
+  headers:
+    - "*"
+
+# Rate Limiting
+rate_limit:
+  enabled: false
+  requests_per_minute: 100
+
+# Health Check
+health:
+  include_model_info: true
+  include_system_info: true

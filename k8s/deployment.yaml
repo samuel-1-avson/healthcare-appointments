@@ -1,0 +1,92 @@
+# ============================================================
+# Kubernetes Deployment Configuration
+# ============================================================
+# 
+# Apply: kubectl apply -f k8s/
+# ============================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: noshow-api
+  labels:
+    app: noshow-api
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: noshow-api
+  template:
+    metadata:
+      labels:
+        app: noshow-api
+        version: v1
+    spec:
+      containers:
+        - name: api
+          image: noshow-api:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: NOSHOW_HOST
+              value: "0.0.0.0"
+            - name: NOSHOW_PORT
+              value: "8000"
+            - name: NOSHOW_WORKERS
+              value: "2"
+            - name: NOSHOW_LOG_LEVEL
+              value: "INFO"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: model-volume
+              mountPath: /app/models/production
+              readOnly: true
+      volumes:
+        - name: model-volume
+          persistentVolumeClaim:
+            claimName: model-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: noshow-api-service
+spec:
+  selector:
+    app: noshow-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-pvc
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 1Gi

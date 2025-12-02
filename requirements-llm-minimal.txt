@@ -1,0 +1,26 @@
+# requirements-llm-minimal.txt
+# Minimal LLM dependencies that work on Python 3.14
+
+# Core - these have Python 3.14 support
+openai
+tiktoken
+httpx
+aiohttp
+python-dotenv
+tenacity
+rich
+pyyaml
+
+# LangChain - use specific versions known to work
+langchain==0.2.16
+langchain-core==0.2.40
+langchain-openai==0.1.25
+
+# Vector store
+faiss-cpu==1.7.4
+
+# Skip these for now (add later if needed):
+# - chromadb (complex dependencies)
+# - sentence-transformers (requires torch)
+# - ragas (requires many dependencies)
+# - langchain-community (can cause conflicts)

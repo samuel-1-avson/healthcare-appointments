@@ -1,0 +1,22 @@
+# docker-compose.override.yaml
+# ============================================================
+# Local overrides - customize for your environment
+# This file is automatically loaded with docker-compose.yaml
+# Add to .gitignore to keep local settings
+# ============================================================
+
+
+
+services:
+  api:
+    # Add any local overrides here
+    environment:
+      - NOSHOW_DEBUG=true
+    # Example: use local GPU
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]

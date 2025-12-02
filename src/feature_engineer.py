@@ -269,7 +269,7 @@ class FeatureEngineer:
         # Calculate days since last appointment
         if appt_col:
             df['days_since_last_appointment'] = df.groupby('patientid')[appt_col].diff().dt.days
-            df['days_since_last_appointment'].fillna(-1, inplace=True)  # -1 for first appointment
+            df['days_since_last_appointment'] = df['days_since_last_appointment'].fillna(-1)  # -1 for first appointment
         
         history_features = [
             'patient_total_appointments', 'patient_previous_noshows',

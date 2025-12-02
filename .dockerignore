@@ -1,0 +1,87 @@
+# .dockerignore
+# ============================================================
+# Files to exclude from Docker build context
+# ============================================================
+
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+*.egg
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile*
+docker-compose*.yaml
+.docker/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Notebooks (optional - include if needed)
+notebooks/
+*.ipynb
+
+# Test files
+tests/
+.pytest_cache/
+
+# Local data (mounted as volumes)
+data/raw/
+data/processed/
+logs/
+
+# Local configs
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+dist/
+build/
+*.whl
+
+# Large files
+*.csv
+*.parquet
+*.pkl
+*.h5
+
+# Models are mounted separately
+# models/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.log

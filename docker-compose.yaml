@@ -1,0 +1,173 @@
+# docker-compose.yaml
+# ============================================================
+# Healthcare No-Show Prediction System - Docker Compose
+# ============================================================
+# 
+# Usage:
+#   Start:          docker-compose up -d
+#   Stop:           docker-compose down
+#   Logs:           docker-compose logs -f api
+#   Rebuild:        docker-compose build --no-cache
+#   Shell:          docker-compose exec api bash
+#
+# ============================================================
+
+
+
+services:
+  # ==================== Frontend Service ====================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: healthcare-noshow-frontend:latest
+    container_name: noshow-frontend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    networks:
+      - noshow-network
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ==================== Main API Service ====================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: healthcare-noshow-api:latest
+    container_name: noshow-api
+    
+    # Port mapping
+    ports:
+      - "${API_PORT:-8000}:8000"
+    
+    # Environment variables
+    environment:
+      # API Settings
+      - NOSHOW_HOST=0.0.0.0
+      - NOSHOW_PORT=8000
+      - NOSHOW_DEBUG=${DEBUG:-false}
+      - NOSHOW_LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - NOSHOW_WORKERS=${WORKERS:-2}
+      
+      # Model paths
+      - NOSHOW_MODEL_PATH=/app/models/production/model.joblib
+      - NOSHOW_PREPROCESSOR_PATH=/app/models/production/preprocessor.joblib
+      - NOSHOW_METADATA_PATH=/app/models/production/model_metadata.json
+      
+      # LLM Settings
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - NOSHOW_LLM_DEFAULT_PROVIDER=${LLM_PROVIDER:-openai}
+      - NOSHOW_LLM_DEFAULT_MODEL=${LLM_MODEL:-gpt-4o-mini}
+      - NOSHOW_LLM_CACHE_ENABLED=${LLM_CACHE:-true}
+      
+      # LangChain/LangSmith (optional)
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING:-false}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY:-}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT:-healthcare-assistant}
+    
+    # Volume mounts
+    volumes:
+      # Models (read-only in production)
+      - ./models/production:/app/models/production:ro
+      # Configuration
+      - ./config:/app/config:ro
+      # Policy documents for RAG
+      - ./data/documents:/app/data/documents:ro
+      # Vector store (read-write for caching)
+      - vector-store:/app/data/vector_store
+      # Embeddings cache
+      - embeddings-cache:/app/data/embeddings_cache
+      # Logs
+      - ./logs:/app/logs
+      # Evaluation results
+      - ./evals:/app/evals
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    
+    # Network
+    networks:
+      - noshow-network
+
+  # ==================== Redis Cache (Optional) ====================
+  redis:
+    image: redis:7-alpine
+    container_name: noshow-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - noshow-network
+    profiles:
+      - with-redis
+
+  # ==================== Nginx Reverse Proxy (Optional) ====================
+  nginx:
+    image: nginx:alpine
+    container_name: noshow-nginx
+    ports:
+      - "${NGINX_PORT:-80}:80"
+      - "${NGINX_SSL_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - noshow-network
+    profiles:
+      - with-nginx
+    restart: unless-stopped
+
+# ==================== Networks ====================
+networks:
+  noshow-network:
+    driver: bridge
+    name: noshow-network
+
+# ==================== Volumes ====================
+volumes:
+  vector-store:
+    name: noshow-vector-store
+  embeddings-cache:
+    name: noshow-embeddings-cache
+  redis-data:
+    name: noshow-redis-data

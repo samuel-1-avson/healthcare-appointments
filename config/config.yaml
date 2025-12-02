@@ -21,7 +21,7 @@ paths:
 
 # Data source
 source:
-  url: "https://raw.githubusercontent.com/datasets/no-show-appointments/main/data/KaggleV2-May-2016.csv"
+  url: "https://raw.githubusercontent.com/kb22/Medical-Appointment-No-Show-Prediction/master/data/dataset.csv"
   encoding: "latin-1"
 
 # Data cleaning parameters

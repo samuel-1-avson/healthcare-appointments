@@ -1,0 +1,115 @@
+C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\site-packages\fs\__init__.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  __import__("pkg_resources").declare_namespace(__name__)  # type: ignore
+============================= test session starts =============================
+platform win32 -- Python 3.12.0, pytest-7.4.0, pluggy-1.6.0 -- C:\Users\samue\AppData\Local\Programs\Python\Python312\python.exe
+cachedir: .pytest_cache
+Fugue tests will be initialized with options:
+rootdir: C:\Users\samue\Desktop\NSP\healthcare-appointments
+configfile: pytest.ini
+plugins: anyio-4.11.0, dash-3.2.0, fugue-0.9.1, asyncio-0.21.1, cov-4.1.0, typeguard-4.4.4
+asyncio: mode=Mode.AUTO
+collecting ... collected 70 items
+
+tests/test_api/test_health.py::TestHealthEndpoints::test_root_redirects_to_docs FAILED [  1%]
+tests/test_api/test_health.py::TestHealthEndpoints::test_health_check_success PASSED [  2%]
+tests/test_api/test_health.py::TestHealthEndpoints::test_health_check_includes_model_info PASSED [  4%]
+tests/test_api/test_health.py::TestHealthEndpoints::test_readiness_check PASSED [  5%]
+tests/test_api/test_health.py::TestHealthEndpoints::test_liveness_check PASSED [  7%]
+tests/test_api/test_health.py::TestHealthEndpoints::test_health_response_time PASSED [  8%]
+tests/test_api/test_health.py::TestAPIInfo::test_openapi_schema_available PASSED [ 10%]
+tests/test_api/test_health.py::TestAPIInfo::test_docs_available PASSED   [ 11%]
+tests/test_api/test_health.py::TestAPIInfo::test_redoc_available PASSED  [ 12%]
+tests/test_api/test_integration.py::TestAPIIntegration::test_full_prediction_workflow PASSED [ 14%]
+tests/test_api/test_integration.py::TestAPIIntegration::test_batch_prediction_workflow PASSED [ 15%]
+tests/test_api/test_integration.py::TestAPIIntegration::test_error_handling_workflow PASSED [ 17%]
+tests/test_api/test_integration.py::TestAPIIntegration::test_concurrent_predictions PASSED [ 18%]
+tests/test_api/test_integration.py::TestAPIIntegration::test_response_times PASSED [ 20%]
+tests/test_api/test_predictions.py::TestSinglePrediction::test_predict_with_valid_data PASSED [ 21%]
+tests/test_api/test_predictions.py::TestSinglePrediction::test_predict_with_minimal_data PASSED [ 22%]
+tests/test_api/test_predictions.py::TestSinglePrediction::test_predict_with_full_data PASSED [ 24%]
+tests/test_api/test_predictions.py::TestSinglePrediction::test_predict_with_custom_threshold PASSED [ 25%]
+tests/test_api/test_predictions.py::TestSinglePrediction::test_predict_with_explanation PASSED [ 27%]
+tests/test_api/test_predictions.py::TestSinglePrediction::test_predict_returns_risk_tier PASSED [ 28%]
+tests/test_api/test_predictions.py::TestSinglePrediction::test_predict_returns_intervention PASSED [ 30%]
+tests/test_api/test_predictions.py::TestSinglePrediction::test_predict_response_has_timestamp PASSED [ 31%]
+tests/test_api/test_predictions.py::TestPredictionValidation::test_predict_rejects_missing_required_fields PASSED [ 32%]
+tests/test_api/test_predictions.py::TestPredictionValidation::test_predict_rejects_invalid_age PASSED [ 34%]
+tests/test_api/test_predictions.py::TestPredictionValidation::test_predict_rejects_invalid_gender PASSED [ 35%]
+tests/test_api/test_predictions.py::TestPredictionValidation::test_predict_rejects_invalid_lead_days PASSED [ 37%]
+tests/test_api/test_predictions.py::TestPredictionValidation::test_predict_rejects_invalid_binary_fields PASSED [ 38%]
+tests/test_api/test_predictions.py::TestPredictionValidation::test_predict_rejects_invalid_threshold PASSED [ 40%]
+tests/test_api/test_predictions.py::TestPredictionValidation::test_predict_accepts_gender_variations PASSED [ 41%]
+tests/test_api/test_predictions.py::TestBatchPrediction::test_batch_predict_success PASSED [ 42%]
+tests/test_api/test_predictions.py::TestBatchPrediction::test_batch_predict_includes_summary FAILED [ 44%]
+tests/test_api/test_predictions.py::TestBatchPrediction::test_batch_predict_empty_list_rejected PASSED [ 45%]
+tests/test_api/test_predictions.py::TestBatchPrediction::test_batch_predict_large_batch PASSED [ 47%]
+tests/test_api/test_predictions.py::TestQuickPrediction::test_quick_predict_success PASSED [ 48%]
+tests/test_api/test_predictions.py::TestQuickPrediction::test_quick_predict_missing_params PASSED [ 50%]
+tests/test_api/test_predictions.py::TestThresholdInfo::test_get_thresholds PASSED [ 51%]
+tests/test_api/test_schemas.py::TestAppointmentFeatures::test_valid_appointment PASSED [ 52%]
+tests/test_api/test_schemas.py::TestAppointmentFeatures::test_default_values PASSED [ 54%]
+tests/test_api/test_schemas.py::TestAppointmentFeatures::test_age_validation PASSED [ 55%]
+tests/test_api/test_schemas.py::TestAppointmentFeatures::test_gender_validation PASSED [ 57%]
+tests/test_api/test_schemas.py::TestAppointmentFeatures::test_binary_field_validation PASSED [ 58%]
+tests/test_api/test_schemas.py::TestAppointmentFeatures::test_handicap_validation PASSED [ 60%]
+tests/test_api/test_schemas.py::TestAppointmentFeatures::test_optional_fields PASSED [ 61%]
+tests/test_api/test_schemas.py::TestRiskAssessment::test_create_minimal_risk PASSED [ 62%]
+tests/test_api/test_schemas.py::TestRiskAssessment::test_create_low_risk PASSED [ 64%]
+tests/test_api/test_schemas.py::TestRiskAssessment::test_create_medium_risk PASSED [ 65%]
+tests/test_api/test_schemas.py::TestRiskAssessment::test_create_high_risk PASSED [ 67%]
+tests/test_api/test_schemas.py::TestRiskAssessment::test_create_critical_risk PASSED [ 68%]
+tests/test_api/test_schemas.py::TestRiskAssessment::test_risk_probability_bounds PASSED [ 70%]
+tests/test_api/test_schemas.py::TestInterventionRecommendation::test_minimal_intervention PASSED [ 71%]
+tests/test_api/test_schemas.py::TestInterventionRecommendation::test_critical_intervention PASSED [ 72%]
+tests/test_api/test_schemas.py::TestInterventionRecommendation::test_intervention_has_action PASSED [ 74%]
+tests/test_api/test_schemas.py::TestBatchRequest::test_valid_batch_request PASSED [ 75%]
+tests/test_api/test_schemas.py::TestBatchRequest::test_empty_batch_rejected PASSED [ 77%]
+tests/test_api/test_schemas.py::TestBatchRequest::test_batch_with_options PASSED [ 78%]
+tests/test_risk_scorer.py::TestRiskScorer::test_initialization PASSED    [ 80%]
+tests/test_risk_scorer.py::TestRiskScorer::test_intervention_protocol_dataclass PASSED [ 81%]
+tests/test_risk_scorer.py::TestRiskScorer::test_calculate_patient_risk PASSED [ 82%]
+tests/test_risk_scorer.py::TestRiskScorer::test_calculate_time_risk PASSED [ 84%]
+tests/test_risk_scorer.py::TestRiskScorer::test_calculate_demographic_risk PASSED [ 85%]
+tests/test_risk_scorer.py::TestRiskScorer::test_calculate_health_risk PASSED [ 87%]
+tests/test_risk_scorer.py::TestRiskScorer::test_calculate_neighborhood_risk PASSED [ 88%]
+tests/test_risk_scorer.py::TestRiskScorer::test_calculate_composite_risk PASSED [ 90%]
+tests/test_risk_scorer.py::TestRiskScorer::test_assign_risk_tier PASSED  [ 91%]
+tests/test_risk_scorer.py::TestRiskScorer::test_get_intervention_protocol PASSED [ 92%]
+tests/test_risk_scorer.py::TestRiskScorer::test_add_intervention_recommendations PASSED [ 94%]
+tests/test_risk_scorer.py::TestRiskScorer::test_score_pipeline PASSED    [ 95%]
+tests/test_risk_scorer.py::TestRiskScorerEdgeCases::test_empty_dataframe PASSED [ 97%]
+tests/test_risk_scorer.py::TestRiskScorerEdgeCases::test_missing_features PASSED [ 98%]
+tests/test_risk_scorer.py::TestRiskScorerEdgeCases::test_nan_values PASSED [100%]
+
+================================== FAILURES ===================================
+_______________ TestHealthEndpoints.test_root_redirects_to_docs _______________
+tests\test_api\test_health.py:17: in test_root_redirects_to_docs
+    assert response.status_code in [301, 302, 307]
+E   assert 200 in [301, 302, 307]
+E    +  where 200 = <Response [200 OK]>.status_code
+---------------------------- Captured stderr setup ----------------------------
+2025-12-01 21:14:41,825 - src.api.main - INFO - ==================================================\n2025-12-01 21:14:41,825 - src.api.main - INFO - Starting Healthcare No-Show Prediction API\n2025-12-01 21:14:41,825 - src.api.main - INFO - ==================================================\n2025-12-01 21:14:41,825 - src.api.main - INFO - API Version: 1.0.0\n2025-12-01 21:14:41,825 - src.api.main - INFO - Debug Mode: False\n2025-12-01 21:14:41,825 - src.api.predict - INFO - NoShowPredictor initialized\n2025-12-01 21:14:41,825 - src.api.predict - INFO - Loading model and preprocessor...\n2025-12-01 21:14:42,334 - src.api.predict - INFO - Model loaded from models\\production\\model.joblib\n2025-12-01 21:14:42,336 - src.api.predict - INFO - Preprocessor loaded from models\\production\\preprocessor.joblib\n2025-12-01 21:14:42,337 - src.api.predict - INFO - Metadata loaded from models\\production\\model_metadata.json\n2025-12-01 21:14:42,337 - src.api.predict - INFO - Model loading complete!\n2025-12-01 21:14:42,337 - src.api.main - INFO - \u2705 Model loaded successfully\n2025-12-01 21:14:42,337 - src.api.main - INFO -    Model: random_forest\n2025-12-01 21:14:42,337 - src.api.main - INFO -    Version: 1.0.0\n2025-12-01 21:14:42,337 - src.api.main - INFO - ==================================================\n2025-12-01 21:14:42,337 - src.api.main - INFO - API Ready!\n2025-12-01 21:14:42,337 - src.api.main - INFO - Docs: http://0.0.0.0:8000/docs\n2025-12-01 21:14:42,337 - src.api.main - INFO - ==================================================
+----------------------------- Captured log setup ------------------------------
+INFO     src.api.main:main.py:49 ==================================================\nINFO     src.api.main:main.py:50 Starting Healthcare No-Show Prediction API\nINFO     src.api.main:main.py:51 ==================================================\nINFO     src.api.main:main.py:54 API Version: 1.0.0\nINFO     src.api.main:main.py:55 Debug Mode: False\nINFO     src.api.predict:predict.py:90 NoShowPredictor initialized\nINFO     src.api.predict:predict.py:106 Loading model and preprocessor...\nINFO     src.api.predict:predict.py:118 Model loaded from models\\production\\model.joblib\nINFO     src.api.predict:predict.py:138 Preprocessor loaded from models\\production\\preprocessor.joblib\nINFO     src.api.predict:predict.py:148 Metadata loaded from models\\production\\model_metadata.json\nINFO     src.api.predict:predict.py:162 Model loading complete!\nINFO     src.api.main:main.py:61 \u2705 Model loaded successfully\nINFO     src.api.main:main.py:62    Model: random_forest\nINFO     src.api.main:main.py:63    Version: 1.0.0\nINFO     src.api.main:main.py:69 ==================================================\nINFO     src.api.main:main.py:70 API Ready!\nINFO     src.api.main:main.py:71 Docs: http://0.0.0.0:8000/docs\nINFO     src.api.main:main.py:72 ==================================================
+---------------------------- Captured stderr call -----------------------------
+2025-12-01 21:14:42,342 - src.api.main - INFO - GET / - 200 - 0.77ms
+2025-12-01 21:14:42,343 - httpx - INFO - HTTP Request: GET http://testserver/ "HTTP/1.1 200 OK"
+------------------------------ Captured log call ------------------------------
+INFO     src.api.main:main.py:127 GET / - 200 - 0.77ms
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/ "HTTP/1.1 200 OK"
+___________ TestBatchPrediction.test_batch_predict_includes_summary ___________
+tests\test_api\test_predictions.py:270: in test_batch_predict_includes_summary
+    assert "avg_probability" in summary
+E   AssertionError: assert 'avg_probability' in {'average_risk_score': 2.5, 'high_risk_count': 0, 'predicted_noshows': 0, 'predicted_shows': 3, ...}
+---------------------------- Captured stderr call -----------------------------
+2025-12-01 21:14:43,204 - src.api.routes.predictions - INFO - Batch prediction: 3 appointments, 0 predicted no-shows
+2025-12-01 21:14:43,205 - src.api.main - INFO - POST /api/v1/predict/batch - 200 - 0.77ms
+2025-12-01 21:14:43,205 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/predict/batch "HTTP/1.1 200 OK"
+------------------------------ Captured log call ------------------------------
+INFO     src.api.routes.predictions:predictions.py:176 Batch prediction: 3 appointments, 0 predicted no-shows
+INFO     src.api.main:main.py:127 POST /api/v1/predict/batch - 200 - 0.77ms
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/v1/predict/batch "HTTP/1.1 200 OK"
+=========================== short test summary info ===========================
+FAILED tests/test_api/test_health.py::TestHealthEndpoints::test_root_redirects_to_docs
+FAILED tests/test_api/test_predictions.py::TestBatchPrediction::test_batch_predict_includes_summary
+======================== 2 failed, 68 passed in 1.56s =========================

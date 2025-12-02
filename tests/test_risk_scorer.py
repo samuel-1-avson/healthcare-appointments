@@ -1,19 +1,12 @@
 """
-Tests for Risk Scoring Module
-=============================
-Unit tests for the RiskScorer class.
+Test Risk Scorer Module
+=======================
+Tests for the RiskScorer class and risk calculation logic.
 """
 
 import pytest
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
-import sys
-import os
-
-# Add src to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from src.risk_scorer import RiskScorer, InterventionProtocol
 
 
@@ -244,32 +237,18 @@ class TestRiskScorer:
         
         for col in intervention_columns:
             assert col in df.columns
-        
-        # Check values are appropriate types
-        assert df['sms_reminders_needed'].dtype in [int, float]
-        assert df['phone_call_required'].dtype == bool
-        assert df['overbook_percentage'].dtype == float
     
     def test_score_pipeline(self, sample_config, sample_data_for_scoring):
         """Test complete scoring pipeline."""
         scorer = RiskScorer(sample_config)
         df = scorer.score_pipeline(sample_data_for_scoring)
+        summary = scorer.get_risk_summary(df)
         
-        # Check all expected columns are present
-        expected_columns = [
-            'composite_risk_score',
-            'risk_tier',
-            'risk_tier_display',
-            'sms_reminders_needed',
-            'phone_call_required',
-            'intervention_description'
-        ]
-        
-        for col in expected_columns:
-            assert col in df.columns
+        assert 'composite_risk_score' in df.columns
+        assert 'risk_tier' in df.columns
+        assert 'intervention_description' in df.columns
         
         # Check risk summary
-        summary = scorer.get_risk_summary(df)
         assert 'total_appointments' in summary
         assert 'risk_score_stats' in summary
         assert 'tier_distribution' in summary

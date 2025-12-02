@@ -1,0 +1,73 @@
+Preprocessor loaded successfully.
+Preprocessor type: <class 'dict'>
+Extracting preprocessor from dict...
+Real preprocessor type: <class 'sklearn.compose._column_transformer.ColumnTransformer'>
+
+Expected features (feature_names_in_):
+- age
+- lead_days
+- patient_total_appointments
+- patient_previous_noshows
+- patient_historical_noshow_rate
+- neighborhood_noshow_rate
+- neighborhood_avg_age
+- schedule_hour
+- gender
+- age_group
+- lead_time_category
+- appointment_weekday
+- neighborhood_risk
+- health_risk_category
+- scholarship
+- hypertension
+- diabetes
+- alcoholism
+- sms_received
+- is_first_appointment
+- is_monday
+- is_friday
+- is_weekend
+- has_chronic_condition
+- has_disability
+- young_long_lead
+- monday_long_lead
+- first_young
+- high_risk_no_sms
+- elderly_chronic
+
+Transformers:
+- numeric: ['age', 'lead_days', 'patient_total_appointments', 'patient_previous_noshows', 'patient_historical_noshow_rate', 'neighborhood_noshow_rate', 'neighborhood_avg_age', 'schedule_hour']
+- categorical: ['gender', 'age_group', 'lead_time_category', 'appointment_weekday', 'neighborhood_risk', 'health_risk_category']
+- binary: ['scholarship', 'hypertension', 'diabetes', 'alcoholism', 'sms_received', 'is_first_appointment', 'is_monday', 'is_friday', 'is_weekend', 'has_chronic_condition', 'has_disability', 'young_long_lead', 'monday_long_lead', 'first_young', 'high_risk_no_sms', 'elderly_chronic']
+
+Model expected features:
+- age
+- lead_days
+- patient_total_appointments
+- patient_previous_noshows
+- patient_historical_noshow_rate
+- neighborhood_noshow_rate
+- neighborhood_avg_age
+- schedule_hour
+- gender
+- age_group
+- lead_time_category
+- appointment_weekday
+- neighborhood_risk
+- health_risk_category
+- scholarship
+- hypertension
+- diabetes
+- alcoholism
+- sms_received
+- is_first_appointment
+- is_monday
+- is_friday
+- is_weekend
+- has_chronic_condition
+- has_disability
+- young_long_lead
+- monday_long_lead
+- first_young
+- high_risk_no_sms
+- elderly_chronic

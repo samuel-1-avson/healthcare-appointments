@@ -1,0 +1,45 @@
+# ============================================================
+# Production Override Configuration
+# ============================================================
+# 
+# Usage:
+#   docker-compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
+#
+# ============================================================
+
+version: '3.8'
+
+services:
+  api:
+    # Production-specific settings
+    environment:
+      - NOSHOW_DEBUG=false
+      - NOSHOW_LOG_LEVEL=WARNING
+      - NOSHOW_WORKERS=4
+      - NOSHOW_LOG_REQUESTS=false
+    
+    # Production resource limits
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "10"
+
+  nginx:
+    # Enable nginx in production
+    profiles: []  # Remove profile restriction

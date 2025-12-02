@@ -1,0 +1,14 @@
+# requirements/prod.txt
+# Additional production dependencies
+
+# Include base requirements
+-r base.txt
+-r api.txt
+-r llm.txt
+
+# Production server
+gunicorn>=21.0.0,<22.0.0
+
+# Monitoring (optional)
+# prometheus-client>=0.17.0
+# sentry-sdk>=1.29.0

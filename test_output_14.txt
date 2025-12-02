@@ -1,0 +1,26 @@
+C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\site-packages\fs\__init__.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  __import__("pkg_resources").declare_namespace(__name__)  # type: ignore
+============================= test session starts =============================
+platform win32 -- Python 3.12.0, pytest-7.4.0, pluggy-1.6.0 -- C:\Users\samue\AppData\Local\Programs\Python\Python312\python.exe
+cachedir: .pytest_cache
+Fugue tests will be initialized with options:
+rootdir: C:\Users\samue\Desktop\NSP\healthcare-appointments
+configfile: pytest.ini
+plugins: anyio-4.11.0, dash-3.2.0, fugue-0.9.1, asyncio-0.21.1, cov-4.1.0, typeguard-4.4.4
+asyncio: mode=Mode.AUTO
+collecting ... collected 12 items
+
+tests/test_data_cleaner.py::TestDataCleaner::test_initialization PASSED  [  8%]
+tests/test_data_cleaner.py::TestDataCleaner::test_clean_column_names PASSED [ 16%]
+tests/test_data_cleaner.py::TestDataCleaner::test_fix_age_outliers PASSED [ 25%]
+tests/test_data_cleaner.py::TestDataCleaner::test_fix_noshow_encoding PASSED [ 33%]
+tests/test_data_cleaner.py::TestDataCleaner::test_clean_dates PASSED     [ 41%]
+tests/test_data_cleaner.py::TestDataCleaner::test_remove_duplicates PASSED [ 50%]
+tests/test_data_cleaner.py::TestDataCleaner::test_handle_missing_values PASSED [ 58%]
+tests/test_data_cleaner.py::TestDataCleaner::test_standardize_text_columns PASSED [ 66%]
+tests/test_data_cleaner.py::TestDataCleaner::test_clean_pipeline PASSED  [ 75%]
+tests/test_data_cleaner.py::TestEdgeCases::test_empty_dataframe PASSED   [ 83%]
+tests/test_data_cleaner.py::TestEdgeCases::test_missing_columns PASSED   [ 91%]
+tests/test_data_cleaner.py::TestEdgeCases::test_all_missing_values PASSED [100%]
+
+============================= 12 passed in 1.26s ==============================
