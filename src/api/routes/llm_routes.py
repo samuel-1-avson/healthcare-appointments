@@ -17,6 +17,8 @@ from pydantic import BaseModel, Field
 
 from ..config import get_settings, Settings
 from ..schemas import AppointmentFeatures, PredictionResponse
+from ..auth import get_current_user, User
+from ..cache import cache_response
 
 # LLM imports
 from src.llm.chains import RiskExplanationChain, InterventionChain
@@ -117,8 +119,9 @@ def get_intervention_chain() -> InterventionChain:
     description="Send a message to the healthcare assistant and get a response"
 )
 async def chat(
-    request: ChatRequest,
-    orchestrator: HealthcareOrchestrator = Depends(get_orchestrator)
+    chat_request: ChatRequest,
+    orchestrator: HealthcareOrchestrator = Depends(get_orchestrator),
+    user: User = Depends(get_current_user)
 ) -> ChatResponse:
     """
     Chat with the healthcare assistant.
@@ -130,14 +133,14 @@ async def chat(
     - Handle general conversation
     """
     # Generate session ID if not provided
-    session_id = request.session_id or f"session-{datetime.utcnow().timestamp()}"
+    session_id = chat_request.session_id or f"session-{datetime.utcnow().timestamp()}"
     
     try:
         # Run synchronously to debug crash
         result = orchestrator.process(
-            message=request.message,
+            message=chat_request.message,
             session_id=session_id,
-            context=request.context
+            context=chat_request.context
         )
         
         return ChatResponse(
@@ -160,8 +163,9 @@ async def chat(
     description="Chat with the agent that can call tools like the prediction API"
 )
 async def chat_with_agent(
-    request: ChatRequest,
-    agent: HealthcareAgent = Depends(get_agent)
+    chat_request: ChatRequest,
+    agent: HealthcareAgent = Depends(get_agent),
+    user: User = Depends(get_current_user)
 ) -> ChatResponse:
     """
     Chat with the tool-enabled agent.
@@ -174,10 +178,10 @@ async def chat_with_agent(
     Use this endpoint when you want the AI to actively make predictions
     based on your queries.
     """
-    session_id = request.session_id or agent.create_session()
+    session_id = chat_request.session_id or agent.create_session()
     
     try:
-        result = agent.chat(session_id, request.message)
+        result = agent.chat(session_id, chat_request.message)
         
         return ChatResponse(
             response=result["output"],
@@ -197,9 +201,11 @@ async def chat_with_agent(
     summary="Explain Prediction",
     description="Get a human-readable explanation of a no-show prediction"
 )
+@cache_response(expire=3600)
 async def explain_prediction(
     request: ExplanationRequest,
-    chain: RiskExplanationChain = Depends(get_explanation_chain)
+    chain: RiskExplanationChain = Depends(get_explanation_chain),
+    user: User = Depends(get_current_user)
 ) -> ExplanationResponse:
     """
     Generate a human-readable explanation for a prediction.
@@ -237,9 +243,11 @@ async def explain_prediction(
     summary="Get Intervention Recommendation",
     description="Get intervention recommendations based on risk assessment"
 )
+@cache_response(expire=3600)
 async def get_intervention(
     request: InterventionRequest,
-    chain: InterventionChain = Depends(get_intervention_chain)
+    chain: InterventionChain = Depends(get_intervention_chain),
+    user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
     Generate intervention recommendations.
@@ -276,7 +284,8 @@ async def get_intervention(
 )
 async def predict_and_explain(
     appointment: AppointmentFeatures,
-    chain: RiskExplanationChain = Depends(get_explanation_chain)
+    chain: RiskExplanationChain = Depends(get_explanation_chain),
+    user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
     Combined endpoint that:
@@ -318,7 +327,9 @@ async def predict_and_explain(
     summary="List Active Sessions",
     description="Get list of active conversation sessions"
 )
-async def list_sessions() -> List[SessionInfo]:
+async def list_sessions(
+    user: User = Depends(get_current_user)
+) -> List[SessionInfo]:
     """List all active conversation sessions."""
     manager = get_memory_manager()
     sessions = manager.list_sessions()
@@ -339,7 +350,10 @@ async def list_sessions() -> List[SessionInfo]:
     summary="Get Session History",
     description="Get conversation history for a session"
 )
-async def get_session_history(session_id: str) -> Dict[str, Any]:
+async def get_session_history(
+    session_id: str,
+    user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
     """Get conversation history for a session."""
     manager = get_memory_manager()
     
@@ -366,7 +380,10 @@ async def get_session_history(session_id: str) -> Dict[str, Any]:
     summary="Delete Session",
     description="Delete a conversation session"
 )
-async def delete_session(session_id: str) -> Dict[str, str]:
+async def delete_session(
+    session_id: str,
+    user: User = Depends(get_current_user)
+) -> Dict[str, str]:
     """Delete a conversation session."""
     manager = get_memory_manager()
     

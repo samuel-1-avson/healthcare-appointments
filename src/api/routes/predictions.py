@@ -1,3 +1,4 @@
+# src/api/routes/predictions.py
 """
 Prediction Routes
 =================
@@ -5,7 +6,7 @@ Endpoints for making no-show predictions.
 """
 
 import logging
-from typing import Optional
+from typing import Optional, Union
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
@@ -15,6 +16,7 @@ from ..config import get_settings, Settings
 from ..schemas import (
     AppointmentFeatures,
     PredictionResponse,
+    AsyncPredictionResponse,
     BatchPredictionRequest,
     BatchPredictionResponse,
     ErrorResponse
@@ -24,6 +26,8 @@ from ..predict import (
     NoShowPredictor,
     PredictionError
 )
+from ..tasks import predict_noshow_task, batch_predict_task
+from celery.result import AsyncResult
 
 
 router = APIRouter()
@@ -32,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 @router.post(
     "",
-    response_model=PredictionResponse,
+    response_model=Union[PredictionResponse, AsyncPredictionResponse],
     summary="Predict No-Show",
     description="Predict whether a patient will miss their appointment",
     responses={
@@ -55,8 +59,9 @@ async def predict_single(
         description="Include feature importance explanation"
     ),
     predictor: NoShowPredictor = Depends(get_predictor),
-    settings: Settings = Depends(get_settings)
-) -> PredictionResponse:
+    settings: Settings = Depends(get_settings),
+    async_mode: bool = Query(False, description="Run prediction asynchronously")
+) -> Union[PredictionResponse, AsyncPredictionResponse]:
     """
     Make a no-show prediction for a single appointment.
     
@@ -83,34 +88,28 @@ async def predict_single(
     - Recommended intervention
     - Optional explanation of key factors
     
-    ## Example
-    
-    ```json
-    {
-        "age": 35,
-        "gender": "F",
-        "lead_days": 7,
-        "scholarship": 0,
-        "sms_received": 1
-    }
-    ```
+    If `async_mode=True`, returns `{"task_id": "...", "status": "processing"}`.
     """
-    # Check if model is loaded
-    if not predictor.is_loaded:
+    # Check if model is loaded (only for sync mode)
+    if not async_mode and not predictor.is_loaded:
         raise HTTPException(
             status_code=503,
             detail="Model not available. Please try again later."
         )
     
     try:
-        # Make prediction
-        result = predictor.predict(
-            appointment,
-            threshold=threshold,
-            include_explanation=include_explanation
-        )
-        
-        return result
+        if async_mode:
+            # Run asynchronously
+            task = predict_noshow_task.delay(appointment.model_dump())
+            return AsyncPredictionResponse(task_id=task.id, status="processing")
+        else:
+            # Run synchronously
+            result = predictor.predict(
+                appointment,
+                threshold=threshold,
+                include_explanation=include_explanation
+            )
+            return result
         
     except PredictionError as e:
         logger.error(f"Prediction error: {e}")
@@ -122,7 +121,7 @@ async def predict_single(
 
 @router.post(
     "/batch",
-    response_model=BatchPredictionResponse,
+    response_model=Union[BatchPredictionResponse, AsyncPredictionResponse],
     summary="Batch Predict No-Shows",
     description="Predict no-shows for multiple appointments at once",
     responses={
@@ -133,52 +132,40 @@ async def predict_single(
 )
 async def predict_batch(
     request: BatchPredictionRequest,
-    predictor: NoShowPredictor = Depends(get_predictor)
-) -> BatchPredictionResponse:
+    predictor: NoShowPredictor = Depends(get_predictor),
+    async_mode: bool = Query(False, description="Run prediction asynchronously")
+) -> Union[BatchPredictionResponse, AsyncPredictionResponse]:
     """
     Make predictions for multiple appointments.
     
     Accepts up to 1000 appointments per request.
-    
-    ## Request Body
-    
-    ```json
-    {
-        "appointments": [
-            {"age": 35, "gender": "F", "lead_days": 7, ...},
-            {"age": 50, "gender": "M", "lead_days": 14, ...}
-        ],
-        "include_explanations": false,
-        "threshold": 0.5
-    }
-    ```
-    
-    ## Response
-    
-    Returns:
-    - List of predictions for each appointment
-    - Summary statistics (counts, averages, risk distribution)
-    - Processing time
+    If `async_mode=True`, returns `{"task_id": "...", "status": "processing"}`.
     """
-    if not predictor.is_loaded:
+    if not async_mode and not predictor.is_loaded:
         raise HTTPException(
             status_code=503,
             detail="Model not available"
         )
     
     try:
-        result = predictor.predict_batch(
-            request.appointments,
-            threshold=request.threshold,
-            include_explanations=request.include_explanations
-        )
-        
-        logger.info(
-            f"Batch prediction: {len(request.appointments)} appointments, "
-            f"{result.summary['predicted_noshows']} predicted no-shows"
-        )
-        
-        return result
+        if async_mode:
+            # Run asynchronously
+            task = batch_predict_task.delay([a.model_dump() for a in request.appointments])
+            return AsyncPredictionResponse(task_id=task.id, status="processing")
+        else:
+            # Run synchronously
+            result = predictor.predict_batch(
+                request.appointments,
+                threshold=request.threshold,
+                include_explanations=request.include_explanations
+            )
+            
+            logger.info(
+                f"Batch prediction: {len(request.appointments)} appointments, "
+                f"{result.summary['predicted_noshows']} predicted no-shows"
+            )
+            
+            return result
         
     except PredictionError as e:
         logger.error(f"Batch prediction error: {e}")
@@ -249,3 +236,27 @@ async def get_thresholds(
                          "Each tier has recommended interventions."
         }
     }
+
+
+@router.get(
+    "/tasks/{task_id}",
+    summary="Get Task Status",
+    description="Get the status and result of a background task"
+)
+async def get_task_status(task_id: str) -> dict:
+    """
+    Get task status.
+    """
+    task_result = AsyncResult(task_id)
+    
+    response = {
+        "task_id": task_id,
+        "status": task_result.status,
+    }
+    
+    if task_result.successful():
+        response["result"] = task_result.result
+    elif task_result.failed():
+        response["error"] = str(task_result.result)
+        
+    return response

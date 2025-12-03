@@ -1,0 +1,73 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [main, dev, develop]
+  pull_request:
+    branches: [main, dev, develop]
+  schedule:
+    # Run security scan weekly on Monday at 9am UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  trivy-scan:
+    name: Trivy Container Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t healthcare-noshow-api:${{ github.sha }} -f Dockerfile .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'healthcare-noshow-api:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Trivy (table output)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'healthcare-noshow-api:${{ github.sha }}'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+
+  dependency-scan:
+    name: Python Dependency Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Safety
+        run: |
+          pip install safety
+
+      - name: Run Safety check
+        run: |
+          safety check --json --output safety-report.json || true
+          safety check || true
+
+      - name: Upload Safety report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: safety-dependency-report
+          path: safety-report.json

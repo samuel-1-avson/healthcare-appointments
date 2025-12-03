@@ -34,6 +34,7 @@ $VenvPath = Join-Path $ProjectRoot "venv"
 $EnvFile = Join-Path $ProjectRoot ".env"
 $RequirementsFile = Join-Path $ProjectRoot "requirements.txt"
 $RequirementsLLMFile = Join-Path $ProjectRoot "requirements-llm.txt"
+$RequirementsApiFile = Join-Path $ProjectRoot "requirements-api.txt"
 
 # Colors for output
 function Write-ColorOutput {
@@ -271,6 +272,11 @@ function Initialize-VirtualEnv {
     if (Test-Path $RequirementsLLMFile) {
         pip install -q -r $RequirementsLLMFile
         Write-Success "LLM dependencies installed"
+    }
+
+    if (Test-Path $RequirementsApiFile) {
+        pip install -q -r $RequirementsApiFile
+        Write-Success "API dependencies installed"
     }
 }
 

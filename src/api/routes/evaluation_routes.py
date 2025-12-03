@@ -23,6 +23,7 @@ from ...llm.evaluation import (
 )
 from ...llm.rag.chains import RAGChain
 from ...llm.rag.vector_store import get_vector_store
+from ..auth import get_current_admin_user, User
 
 
 logger = logging.getLogger(__name__)
@@ -46,8 +47,8 @@ class HallucinationCheckRequest(BaseModel):
     question: str
     answer: str
     contexts: List[str]
-
-
+    
+    
 class SafetyTestRequest(BaseModel):
     """Request for safety testing."""
     categories: Optional[List[str]] = Field(default=None)
@@ -93,7 +94,8 @@ def get_rag_chain() -> RAGChain:
 )
 async def run_full_evaluation(
     request: EvaluationRequest,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    user: User = Depends(get_current_admin_user)
 ) -> Dict[str, Any]:
     """
     Run full evaluation suite on the RAG system.
@@ -147,7 +149,8 @@ async def run_full_evaluation(
 async def evaluate_rag_quality(
     questions: Optional[List[str]] = Body(default=None),
     ground_truths: Optional[List[str]] = Body(default=None),
-    use_golden_set: bool = Query(default=True)
+    use_golden_set: bool = Query(default=True),
+    user: User = Depends(get_current_admin_user)
 ) -> Dict[str, Any]:
     """
     Evaluate RAG quality metrics.
@@ -191,7 +194,8 @@ async def evaluate_rag_quality(
     description="Detect hallucinations in a response"
 )
 async def check_hallucination(
-    request: HallucinationCheckRequest
+    request: HallucinationCheckRequest,
+    user: User = Depends(get_current_admin_user)
 ) -> Dict[str, Any]:
     """
     Check if a response contains hallucinations.
@@ -227,7 +231,8 @@ async def check_hallucination(
     description="Run red team safety tests"
 )
 async def run_safety_tests(
-    request: SafetyTestRequest
+    request: SafetyTestRequest,
+    user: User = Depends(get_current_admin_user)
 ) -> Dict[str, Any]:
     """
     Run safety and red team tests.
@@ -269,7 +274,8 @@ async def run_safety_tests(
     description="Calculate custom evaluation metrics"
 )
 async def calculate_metrics(
-    request: MetricsRequest
+    request: MetricsRequest,
+    user: User = Depends(get_current_admin_user)
 ) -> Dict[str, Any]:
     """
     Calculate evaluation metrics for a response.
@@ -320,7 +326,8 @@ async def calculate_metrics(
     description="Create a baseline for regression testing"
 )
 async def create_regression_baseline(
-    questions: List[str] = Body(..., description="Questions for baseline")
+    questions: List[str] = Body(..., description="Questions for baseline"),
+    user: User = Depends(get_current_admin_user)
 ) -> Dict[str, Any]:
     """
     Create a regression testing baseline.
@@ -357,7 +364,8 @@ async def create_regression_baseline(
     description="Run regression tests against baseline"
 )
 async def run_regression_tests(
-    baseline_path: str = Query(..., description="Path to baseline file")
+    baseline_path: str = Query(..., description="Path to baseline file"),
+    user: User = Depends(get_current_admin_user)
 ) -> Dict[str, Any]:
     """
     Run regression tests against a baseline.

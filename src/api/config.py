@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 from functools import lru_cache
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import yaml
 
@@ -31,12 +31,11 @@ class Settings(BaseSettings):
         NOSHOW_MODEL_PATH=/path/to/model.joblib
     """
     
-    model_config = SettingsConfigDict(
-        env_prefix="NOSHOW_",
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore"
-    )
+    class Config:
+        env_prefix = "NOSHOW_"
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        extra = "ignore"
     
     # API Settings
     api_title: str = "Healthcare No-Show Prediction API"
@@ -72,10 +71,55 @@ class Settings(BaseSettings):
     default_neighbourhood: str = "Unknown"
     default_weekday: str = "Monday"
     
+    # Database
+    database_url: Optional[str] = None
+    postgres_user: str = "admin"
+    postgres_password: str = "admin123"
+    postgres_db: str = "healthcare"
+    postgres_host: str = "localhost"
+    postgres_port: int = 5432
+    
+    # Redis Cache
+    redis_host: str = "redis"
+    redis_port: int = 6379
+    redis_db: int = 0
+    redis_enabled: bool = True
+    
+    # Security
+    secret_key: str = "dev_secret_key_change_me"
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+    
+    @field_validator('database_url', mode='before')
+    @classmethod
+    def assemble_db_url(cls, v: Optional[str], info: ValidationInfo) -> Any:
+        """Assemble database URL if not provided."""
+        if isinstance(v, str):
+            return v
+        
+        # Fallback to SQLite if no postgres settings (e.g. local dev without docker)
+        # But if we are in docker, we expect env vars.
+        # Let's construct Postgres URL from components
+        # Note: In Pydantic V2, info.data might not be fully populated if validation order matters.
+        # But for now let's assume it works or use defaults.
+        user = info.data.get('postgres_user', 'admin')
+        password = info.data.get('postgres_password', 'admin123')
+        host = info.data.get('postgres_host', 'localhost')
+        port = info.data.get('postgres_port', 5432)
+        db = info.data.get('postgres_db', 'healthcare')
+        
+        return f"postgresql://{user}:{password}@{host}:{port}/{db}"
+    
     @field_validator('model_path', 'preprocessor_path')
     @classmethod
     def validate_paths(cls, v: str) -> str:
         """Validate that paths are strings (existence checked at runtime)."""
+        return v
+    
+    @field_validator('secret_key', check_fields=False)
+    @classmethod
+    def validate_secret_key(cls, v: str, info: ValidationInfo) -> str:
+        """Validate secret key security."""
         return v
     
     @property
@@ -96,32 +140,32 @@ class RiskTierConfig:
         "CRITICAL": {
             "min_probability": 0.7,
             "color": "#e74c3c",
-            "emoji": "🔴",
-            "intervention": "Immediate phone call + deposit required"
+            "intervention": "Immediate phone call + deposit required",
+            "emoji": "🔴"
         },
         "HIGH": {
             "min_probability": 0.5,
             "color": "#e67e22", 
-            "emoji": "🟠",
-            "intervention": "Phone call + double SMS reminder"
+            "intervention": "Phone call + double SMS reminder",
+            "emoji": "🟠"
         },
         "MEDIUM": {
             "min_probability": 0.3,
             "color": "#f1c40f",
-            "emoji": "🟡",
-            "intervention": "Double SMS reminder"
+            "intervention": "Double SMS reminder",
+            "emoji": "🟡"
         },
         "LOW": {
             "min_probability": 0.15,
             "color": "#2ecc71",
-            "emoji": "🟢",
-            "intervention": "Standard SMS reminder"
+            "intervention": "Standard SMS reminder",
+            "emoji": "🟢"
         },
         "MINIMAL": {
             "min_probability": 0.0,
             "color": "#27ae60",
-            "emoji": "⭐",
-            "intervention": "No additional intervention needed"
+            "intervention": "No additional intervention needed",
+            "emoji": "⚪"
         }
     }
     

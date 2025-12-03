@@ -76,9 +76,11 @@ def get_chat_model(
             
         elif model_config.provider == "local":
             from langchain_community.chat_models import ChatOllama
+            import os
             
-            # Use host.docker.internal for Docker -> Host communication
-            base_url = "http://host.docker.internal:11434"
+            # Use localhost by default, or host.docker.internal if explicitly set or in Docker
+            # For local dev on Windows, localhost is correct.
+            base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
             
             return ChatOllama(
                 model=model_config.name,

@@ -9,6 +9,7 @@ import logging
 from typing import Optional, Type, Dict, Any
 
 from pydantic import BaseModel, Field
+from pydantic.v1 import PrivateAttr  # Added for Pydantic v1 compatibility
 from langchain_core.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 
@@ -41,6 +42,9 @@ class ExplanationTool(BaseTool):
     Uses LLM to translate ML predictions into actionable insights
     for healthcare staff.
     """
+    
+    # Fix for Pydantic v1 "unable to infer type for attribute artifact" on Python 3.14
+    _artifact: Any = PrivateAttr(default=None)
     
     name: str = "explain_prediction"
     description: str = """

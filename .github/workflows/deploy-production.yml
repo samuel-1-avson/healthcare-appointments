@@ -1,0 +1,123 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:  # Manual trigger only
+    inputs:
+      environment:
+        description: 'Target environment slot (blue/green)'
+        required: true
+        type: choice
+        options:
+          - blue
+          - green
+      promote_to_live:
+        description: 'Promote to live traffic after deployment'
+        required: true
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/healthcare
+
+jobs:
+  deploy-production:
+    name: Deploy to Production (${{ github.event.inputs.environment }})
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://healthcare-app.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get latest image tags
+        id: get-tags
+        run: |
+          echo "api_tag=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/api:latest" >> $GITHUB_OUTPUT
+          echo "worker_tag=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/worker:latest" >> $GITHUB_OUTPUT
+
+      - name: Deploy to ${{ github.event.inputs.environment }} environment
+        run: |
+          echo "Deploying to ${{ github.event.inputs.environment }} slot..."
+          # In production, you would:
+          # 1. SSH to production server
+          # 2. Set DEPLOYMENT_SLOT=${{ github.event.inputs.environment }}
+          # 3. Pull images with specific tags
+          # 4. Deploy to the chosen slot (blue or green)
+          # 5. Run health checks
+
+      - name: Run health checks
+        run: |
+          echo "Running health checks on ${{ github.event.inputs.environment }}..."
+          # curl https://${{ github.event.inputs.environment }}.healthcare-app.com/health
+          # Run comprehensive health checks
+          # Verify all services are running
+          # Check database connectivity
+          # Validate MLflow connection
+
+      - name: Run integration tests
+        run: |
+          echo "Running integration tests..."
+          # pytest tests/integration/ --base-url=https://${{ github.event.inputs.environment }}.healthcare-app.com
+
+  switch-traffic:
+    name: Switch Traffic to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: github.event.inputs.promote_to_live == 'true'
+    environment:
+      name: production-traffic-switch
+      url: https://healthcare-app.com
+
+    steps:
+      - name: Switch load balancer to ${{ github.event.inputs.environment }}
+        run: |
+          echo "Switching traffic to ${{ github.event.inputs.environment }}..."
+          # Update load balancer / nginx configuration
+          # Point traffic to the new environment
+          # This could be:
+          # - Updating nginx upstream
+          # - Changing cloud load balancer target
+          # - Updating DNS records (gradual)
+
+      - name: Monitor metrics
+        run: |
+          echo "Monitoring post-deployment metrics..."
+          # Monitor error rates
+          # Check response times
+          # Validate business metrics
+
+      - name: Notify deployment success
+        run: |
+          echo "Production deployment successful!"
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Live traffic: ${{ github.event.inputs.promote_to_live }}"
+          # Send notifications to Slack/Discord/PagerDuty
+
+  rollback:
+    name: Rollback (if needed)
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: [deploy-production, switch-traffic]
+
+    steps:
+      - name: Rollback deployment
+        run: |
+          echo "Rolling back deployment..."
+          # Switch traffic back to previous environment
+          # Restore previous configuration
+          # Alert team of rollback
+
+      - name: Notify rollback
+        run: |
+          echo "ALERT: Production deployment rolled back!"
+          # Send critical alerts

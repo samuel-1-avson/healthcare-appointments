@@ -12,7 +12,7 @@ import json
 
 from langchain_core.tools import BaseTool, StructuredTool, tool
 from langchain_core.callbacks import CallbackManagerForToolRun
-from pydantic import BaseModel, Field
+from pydantic.v1 import BaseModel, Field, PrivateAttr
 
 from ..langchain_config import get_langchain_settings
 
@@ -64,6 +64,9 @@ class PredictionTool(BaseTool):
     ...     "lead_days": 7
     ... })
     """
+    
+    # Fix for Pydantic v1 "unable to infer type for attribute artifact"
+    _artifact: Any = PrivateAttr(default=None)
     
     name: str = "predict_noshow"
     description: str = """
@@ -267,16 +270,22 @@ def create_batch_prediction_tool(api_url: Optional[str] = None) -> StructuredToo
             result = response.json()
         
         summary = result.get("summary", {})
+        total = summary.get("total", len(appointments))
+        predicted_noshows = summary.get("predicted_noshows", 0)
+        avg_prob = summary.get("avg_probability", 0)
+        risk_dist = json.dumps(summary.get("risk_distribution", {}), indent=2)
+        proc_time = int(result.get("processing_time_ms", 0))
+
         return f"""
 BATCH PREDICTION RESULTS:
-- Total Appointments: {summary.get("total", len(appointments))}
-- Predicted No-Shows: {summary.get("predicted_noshows", 0)}
-- Average Probability: {summary.get("avg_probability", 0):.1%}
+- Total Appointments: {total}
+- Predicted No-Shows: {predicted_noshows}
+- Average Probability: {avg_prob:.1%}
 
 RISK DISTRIBUTION:
-{json.dumps(summary.get("risk_distribution", {}), indent=2)}
+{risk_dist}
 
-Processing Time: {result.get("processing_time_ms", 0):.0f}ms
+Processing Time: {proc_time}ms
 """
     
     return StructuredTool.from_function(

@@ -27,6 +27,8 @@ from src.llm.rag.chains import (
     create_rag_chain
 )
 from src.llm.rag.evaluation import RAGEvaluator, create_healthcare_golden_set
+from ..auth import get_current_user, User
+from ..cache import cache_response
 
 
 logger = logging.getLogger(__name__)
@@ -120,7 +122,8 @@ def get_conversational_rag() -> ConversationalRAGChain:
     description="Ask a question about healthcare appointment policies"
 )
 async def ask_policy_question(
-    request: PolicyQuestion
+    request: PolicyQuestion,
+    user: User = Depends(get_current_user)
 ) -> PolicyAnswer:
     """
     Ask a question about appointment policies.
@@ -174,7 +177,8 @@ async def ask_policy_question(
     description="Ask multiple policy questions at once"
 )
 async def ask_batch_questions(
-    questions: List[str] = Body(..., description="List of questions")
+    questions: List[str] = Body(..., description="List of questions"),
+    user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Ask multiple questions and get all answers."""
     rag = get_rag_chain()
@@ -208,9 +212,11 @@ async def ask_batch_questions(
     summary="Search Policies",
     description="Search policy documents without generating an answer"
 )
+@cache_response(expire=3600)
 async def search_policies(
     query: str = Query(..., description="Search query"),
-    k: int = Query(default=5, ge=1, le=20, description="Number of results")
+    k: int = Query(default=5, ge=1, le=20, description="Number of results"),
+    user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
     Search policy documents.
@@ -251,7 +257,8 @@ async def create_index(
     background_tasks: BackgroundTasks,
     documents_path: str = Query(default="data/documents", description="Path to documents"),
     chunk_size: int = Query(default=1000, ge=100, le=4000),
-    chunk_overlap: int = Query(default=200, ge=0, le=500)
+    chunk_overlap: int = Query(default=200, ge=0, le=500),
+    user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
     Create or rebuild the vector index.
@@ -300,7 +307,8 @@ async def create_index(
     description="Load existing vector index from disk"
 )
 async def load_index(
-    name: str = Query(default="default", description="Index name")
+    name: str = Query(default="default", description="Index name"),
+    user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Load a previously saved index."""
     try:
@@ -330,7 +338,9 @@ async def load_index(
     summary="Index Status",
     description="Get current index status"
 )
-async def get_index_status() -> IndexStatus:
+async def get_index_status(
+    user: User = Depends(get_current_user)
+) -> IndexStatus:
     """Get the status of the vector index."""
     manager = get_vector_store()
     stats = manager.get_stats()
@@ -351,7 +361,8 @@ async def get_index_status() -> IndexStatus:
     description="Add a new document to the index"
 )
 async def add_document(
-    document: DocumentUpload
+    document: DocumentUpload,
+    user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Add a new document to the existing index."""
     from langchain_core.documents import Document
@@ -393,7 +404,8 @@ async def add_document(
 )
 async def evaluate_rag(
     use_golden_set: bool = Query(default=True, description="Use predefined golden set"),
-    questions: Optional[List[str]] = Body(default=None, description="Custom questions")
+    questions: Optional[List[str]] = Body(default=None, description="Custom questions"),
+    user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
     Evaluate the RAG pipeline quality.
@@ -435,7 +447,9 @@ async def evaluate_rag(
     summary="Create Session",
     description="Create a new conversation session for RAG"
 )
-async def create_session() -> Dict[str, str]:
+async def create_session(
+    user: User = Depends(get_current_user)
+) -> Dict[str, str]:
     """Create a new conversation session."""
     rag = get_conversational_rag()
     session_id = rag.create_session()
@@ -448,7 +462,10 @@ async def create_session() -> Dict[str, str]:
     summary="Get Session History",
     description="Get conversation history for a RAG session"
 )
-async def get_session_history(session_id: str) -> Dict[str, Any]:
+async def get_session_history(
+    session_id: str,
+    user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
     """Get conversation history."""
     rag = get_conversational_rag()
     
@@ -468,7 +485,10 @@ async def get_session_history(session_id: str) -> Dict[str, Any]:
     summary="Clear Session",
     description="Clear conversation history for a session"
 )
-async def clear_session(session_id: str) -> Dict[str, str]:
+async def clear_session(
+    session_id: str,
+    user: User = Depends(get_current_user)
+) -> Dict[str, str]:
     """Clear session history."""
     rag = get_conversational_rag()
     rag.clear_history(session_id)

@@ -31,6 +31,7 @@ import argparse
 import logging
 import sys
 import json
+import os
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict, Any
@@ -39,6 +40,8 @@ import yaml
 import pandas as pd
 import numpy as np
 import joblib
+import mlflow
+import mlflow.sklearn
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -124,6 +127,15 @@ class TrainingPipeline:
         self.logger.info(f"Training Pipeline initialized")
         self.logger.info(f"  Experiment ID: {self.experiment_id}")
         self.logger.info(f"  Output directory: {self.output_dir}")
+
+        # Setup MLflow
+        self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+        try:
+            mlflow.set_tracking_uri(self.mlflow_tracking_uri)
+            mlflow.set_experiment("noshow_prediction")
+            self.logger.info(f"  MLflow tracking URI: {self.mlflow_tracking_uri}")
+        except Exception as e:
+            self.logger.warning(f"Failed to setup MLflow: {e}")
     
     def _load_config(self, config_path: str) -> dict:
         """Load configuration from YAML file."""
@@ -453,36 +465,62 @@ class TrainingPipeline:
         self.logger.info(f"Interpret: {interpret}")
         
         try:
-            # Load and prepare data
-            self.load_data()
-            self.prepare_data()
-            
-            # Train models
-            if tune:
-                self.train_with_tuning(model_names)
-            else:
-                self.train_baseline(model_names)
-            
-            # Evaluate
-            if evaluate:
-                self.evaluate()
-            
-            # Interpret
-            if interpret:
-                self.interpret()
-            
-            # Save summary
-            self.save_summary()
-            
-            elapsed = (datetime.now() - start_time).total_seconds()
-            self.logger.info(f"\n✅ Pipeline completed in {elapsed:.1f} seconds")
-            
-            return {
-                'experiment_id': self.experiment_id,
-                'best_model': self.best_model_name,
-                'results': self.results,
-                'output_dir': str(self.output_dir)
-            }
+            # Start MLflow run
+            with mlflow.start_run(run_name=self.experiment_id) as run:
+                self.logger.info(f"Started MLflow run: {run.info.run_id}")
+                
+                # Log configuration
+                mlflow.log_params(self.config.get('ml_project', {}))
+                mlflow.log_param("tune", tune)
+                
+                # Load and prepare data
+                self.load_data()
+                self.prepare_data()
+                
+                # Train models
+                if tune:
+                    self.train_with_tuning(model_names)
+                else:
+                    self.train_baseline(model_names)
+                
+                # Evaluate
+                if evaluate:
+                    self.evaluate()
+                    
+                    # Log metrics for best model
+                    if self.best_model_name and self.best_model_name in self.results:
+                        result = self.results[self.best_model_name]
+                        mlflow.log_metrics({
+                            "roc_auc": result.roc_auc,
+                            "f1": result.f1,
+                            "precision": result.precision,
+                            "recall": result.recall,
+                            "accuracy": result.accuracy
+                        })
+                        mlflow.log_param("best_model", self.best_model_name)
+                
+                # Log model artifact
+                if self.best_model:
+                    mlflow.sklearn.log_model(self.best_model, "model")
+                    self.logger.info("Logged best model to MLflow")
+
+                # Interpret
+                if interpret:
+                    self.interpret()
+                
+                # Save summary
+                self.save_summary()
+                
+                elapsed = (datetime.now() - start_time).total_seconds()
+                self.logger.info(f"\n✅ Pipeline completed in {elapsed:.1f} seconds")
+                
+                return {
+                    'experiment_id': self.experiment_id,
+                    'best_model': self.best_model_name,
+                    'results': self.results,
+                    'output_dir': str(self.output_dir),
+                    'mlflow_run_id': run.info.run_id
+                }
             
         except Exception as e:
             self.logger.error(f"Pipeline failed: {str(e)}")

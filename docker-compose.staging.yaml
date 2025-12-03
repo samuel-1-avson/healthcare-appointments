@@ -1,0 +1,127 @@
+# docker-compose.staging.yaml
+# ============================================================
+# Healthcare No-Show Prediction System - Staging Environment
+# ============================================================
+
+services:
+  # Frontend
+  frontend:
+    image: ${DOCKER_REGISTRY:-ghcr.io}/${DOCKER_IMAGE_PREFIX:-healthcare}/frontend:${IMAGE_TAG:-latest}
+    ports:
+      - "3000:80"
+    environment:
+      - API_URL=http://nginx:80
+    depends_on:
+      - nginx
+    networks:
+      - noshow-staging
+
+  # API (3 replicas for load balancing test)
+  api:
+    image: ${DOCKER_REGISTRY:-ghcr.io}/${DOCKER_IMAGE_PREFIX:-healthcare}/api:${IMAGE_TAG:-latest}
+    deploy:
+      replicas: 2
+    environment:
+      - NOSHOW_HOST=0.0.0.0
+      - NOSHOW_PORT=8000
+      - NOSHOW_DEBUG=true  # Debug enabled in staging
+      - NOSHOW_LOG_LEVEL=DEBUG
+      - NOSHOW_DATABASE_URL=postgresql://staging:staging123@postgres:5432/healthcare_staging
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+      - mlflow
+    networks:
+      - noshow-staging
+
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+    networks:
+      - noshow-staging
+
+  # PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=staging
+      - POSTGRES_PASSWORD=staging123
+      - POSTGRES_DB=healthcare_staging
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts
+    volumes:
+      - postgres-staging-data:/var/lib/postgresql/data
+    networks:
+      - noshow-staging
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-staging-data:/data
+    networks:
+      - noshow-staging
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    volumes:
+      - rabbitmq-staging-data:/var/lib/rabbitmq
+    networks:
+      - noshow-staging
+
+  # Celery Worker
+  worker:
+    image: ${DOCKER_REGISTRY:-ghcr.io}/${DOCKER_IMAGE_PREFIX:-healthcare}/worker:${IMAGE_TAG:-latest}
+    command: celery -A src.api.worker.celery_app worker --loglevel=debug
+    environment:
+      - NOSHOW_DATABASE_URL=postgresql://staging:staging123@postgres:5432/healthcare_staging
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    networks:
+      - noshow-staging
+
+  # MLflow
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.10.0
+    ports:
+      - "5001:5000"  # Different port
+    command: mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlartifacts --host 0.0.0.0
+    volumes:
+      - mlflow-staging-data:/mlflow
+      - mlartifacts-staging-data:/mlartifacts
+    networks:
+      - noshow-staging
+
+networks:
+  noshow-staging:
+    driver: bridge
+    name: noshow-staging
+
+volumes:
+  postgres-staging-data:
+  redis-staging-data:
+  rabbitmq-staging-data:
+  mlflow-staging-data:
+  mlartifacts-staging-data:

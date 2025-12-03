@@ -52,3 +52,33 @@ Thumbs.db
 
 # Node modules
 node_modules/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars  # Environment-specific, may contain secrets
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CI/CD
+bandit-report.json
+safety-report.json
+trivy-results.sarif
+coverage.xml
+
+# Docker
+.dockerignore
+
+
+# Temporary/Debug files
+*.err
+current_packages.txt
+body.json
+payload.json

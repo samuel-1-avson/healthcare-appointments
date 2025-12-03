@@ -31,6 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     curl \
     git \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -57,6 +58,9 @@ RUN pip install -r /requirements/api.txt
 
 # 3. LLM dependencies (langchain, openai, faiss)
 RUN pip install -r /requirements/llm.txt
+
+# Force install psycopg2-binary to ensure it's present
+RUN pip install psycopg2-binary
 
 
 # ==================== STAGE 3: Development ====================
@@ -112,6 +116,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -122,8 +127,8 @@ RUN groupadd --gid 1000 ${APP_USER} && \
 # Set work directory
 WORKDIR ${APP_HOME}
 
-# Copy virtual environment from builder
-COPY --from=builder /opt/venv /opt/venv
+# Copy virtual environment from builder with correct ownership
+COPY --from=builder --chown=${APP_USER}:${APP_USER} /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy application code
@@ -147,9 +152,10 @@ RUN mkdir -p \
     ${APP_HOME}/evals/results \
     && chown -R ${APP_USER}:${APP_USER} ${APP_HOME}
 
-# Copy startup script
-COPY --chown=${APP_USER}:${APP_USER} scripts/docker-entrypoint.sh ${APP_HOME}/
-RUN chmod +x ${APP_HOME}/docker-entrypoint.sh
+# Copy scripts
+COPY --chown=${APP_USER}:${APP_USER} scripts/ ${APP_HOME}/scripts/
+RUN chmod +x ${APP_HOME}/scripts/*.sh
+RUN mv ${APP_HOME}/scripts/docker-entrypoint.sh ${APP_HOME}/docker-entrypoint.sh
 
 # Switch to non-root user
 USER ${APP_USER}

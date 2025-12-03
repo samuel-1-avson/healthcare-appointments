@@ -1,0 +1,22 @@
+# Development and CI/CD Dependencies
+# ===================================
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.11.1
+httpx>=0.24.0  # For API testing
+
+# Code Quality
+black>=23.7.0
+ruff>=0.0.285
+mypy>=1.5.0
+
+# Security
+bandit>=1.7.5
+safety>=2.3.5
+
+# Type stubs
+types-requests>=2.31.0
+types-redis>=4.6.0

@@ -22,8 +22,8 @@ Usage:
     uvicorn src.api.main:app --reload
     
     # Make predictions
-    curl -X POST "http://localhost:8000/api/v1/predict" \\
-         -H "Content-Type: application/json" \\
+    curl -X POST "http://localhost:8000/api/v1/predict" \
+         -H "Content-Type: application/json" \
          -d '{"age": 35, "gender": "F", "lead_days": 7, ...}'
 """
 

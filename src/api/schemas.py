@@ -361,6 +361,13 @@ class BatchPredictionResponse(BaseModel):
     )
 
 
+class AsyncPredictionResponse(BaseModel):
+    """Response for asynchronous prediction request."""
+    
+    task_id: str = Field(description="Task ID for tracking")
+    status: str = Field(description="Task status (processing)")
+
+
 # ==================== HEALTH & INFO SCHEMAS ====================
 
 class HealthStatus(str, Enum):

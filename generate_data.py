@@ -479,52 +479,6 @@ priority = priority[['appointmentid', 'patientid', 'neighbourhood', 'age_group',
                      'risk_tier', 'phone_call_required', 'deposit_required']].head(500)
 priority.to_csv(SQL_DIR / "sql_priority_interventions.csv", index=False)
 print(f"   💾 Saved: sql_priority_interventions.csv")
-
-# ============================================================================
-# FINAL SUMMARY
-# ============================================================================
-
-print("\n" + "="*70)
-print("✅ DATA GENERATION COMPLETE!")
-print("="*70)
-
-# List all files created
-print("\n📁 FILES CREATED:")
-print("\n   📂 data/raw/")
-print("      └── appointments_raw.csv")
-
-print("\n   📂 data/processed/")
-print("      ├── appointments_cleaned.csv")
-print("      ├── appointments_features.csv")
-print("      └── appointments_scored.csv")
-
-print("\n   📂 data/dashboard/")
-print("      ├── appointments_dashboard.csv (MAIN FILE FOR LOOKER STUDIO)")
-print("      ├── summary_daily.csv")
-print("      ├── summary_neighborhood.csv")
-print("      ├── summary_risk_tier.csv")
-print("      ├── summary_age_group.csv")
-print("      ├── summary_day_of_week.csv")
-print("      ├── summary_lead_time.csv")
-print("      ├── summary_sms.csv")
-print("      └── summary_patient_segments.csv")
-
-print("\n   📂 outputs/sql/")
-print("      ├── sql_serial_noshows.csv")
-print("      └── sql_priority_interventions.csv")
-
-# Final statistics
-print("\n📊 FINAL STATISTICS:")
-print(f"   Total appointments: {len(df):,}")
-print(f"   Unique patients: {df['patientid'].nunique():,}")
-print(f"   Date range: {df['appointmentday'].min().date()} to {df['appointmentday'].max().date()}")
-print(f"   No-show rate: {df['no_show'].mean()*100:.1f}%")
-print(f"   Total no-shows: {df['no_show'].sum():,}")
-print(f"   Financial impact: ${df['no_show'].sum() * 150:,.0f}")
-
-print("\n🚀 NEXT STEPS:")
-print("   1. Upload 'appointments_dashboard.csv' to Google Sheets")
-print("   2. Connect Google Sheets to Looker Studio")
 print("   3. Use summary files for faster dashboard loading")
 
 print("\n" + "="*70)

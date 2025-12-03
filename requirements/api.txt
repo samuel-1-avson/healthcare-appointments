@@ -20,5 +20,22 @@ python-multipart>=0.0.6,<1.0.0
 # Async
 anyio>=3.7.0,<5.0.0
 
-# Logging
-colorlog>=6.7.0,<7.0.0
+# Logging & Monitoring
+python-json-logger>=2.0.0
+colorlog>=6.7.0
+prometheus-fastapi-instrumentator>=6.0.0,<7.0.0
+redis>=5.0.0
+
+# Authentication
+python-jose[cryptography]>=3.3.0,<4.0.0
+passlib[bcrypt]>=1.7.4,<2.0.0
+
+# Task Queue
+celery==5.3.6
+flower==2.0.1
+mlflow==2.10.0
+# evidently==0.3.3  # TODO: Fix compatibility issue
+
+slowapi>=0.1.9
+cryptography>=41.0.0
+sentry-sdk[fastapi]>=1.39.0

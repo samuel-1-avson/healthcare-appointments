@@ -136,7 +136,7 @@ if ($HealthCheck -or $All) {
 # Unit Tests
 if ($Unit -or $All) {
     Write-TestHeader "Unit Tests"
-    python -m pytest tests/ -v --ignore=tests/test_api
+    python -m pytest tests/ -v --ignore=tests/test_api --ignore=tests/test_async_predictions.py --ignore=tests/test_observability.py --ignore=tests/test_e2e_staging.py --ignore=tests/test_redis.py --ignore=tests/chaos/ --ignore=tests/e2e/
 }
 
 # Integration Tests
