@@ -14,7 +14,7 @@
 # ============================================================
 
 # ==================== STAGE 1: Base Dependencies ====================
-FROM python:3.11-slim as base
+FROM python:3.14-slim as base
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -90,7 +90,7 @@ CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--re
 
 
 # ==================== STAGE 4: Production ====================
-FROM python:3.11-slim as production
+FROM python:3.14-slim as production
 
 # Labels
 LABEL maintainer="Healthcare Analytics Team" \
