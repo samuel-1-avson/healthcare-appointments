@@ -16,11 +16,11 @@ import logging
 from typing import Dict, Any, Optional, List, Sequence
 from datetime import datetime
 
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
 from langchain_core.tools import BaseTool
 from langchain_core.runnables import RunnablePassthrough
-from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain.agents import AgentExecutor, create_tool_calling_agent, create_react_agent
 from langchain.agents.format_scratchpad.tools import format_to_tool_messages
 from langchain.agents.output_parsers.tools import ToolsAgentOutputParser
 
@@ -75,6 +75,30 @@ DO NOT use tools when:
 Today's date: {current_date}
 You are helping staff at a healthcare clinic manage their appointment schedule.
 """
+
+REACT_AGENT_PROMPT = """You are a Healthcare Appointment Assistant.
+Answer the following questions as best you can. You have access to the following tools:
+
+{tools}
+
+Use the following format:
+
+Question: the input question you must answer
+Thought: you should always think about what to do
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can repeat N times)
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
+
+Previous conversation history:
+{chat_history}
+
+Begin!
+
+Question: {input}
+Thought:{agent_scratchpad}"""
 
 
 # ==================== Agent Implementation ====================
@@ -152,20 +176,42 @@ class HealthcareAgent:
     def _build_agent(self) -> AgentExecutor:
         """Build the agent executor."""
         
-        # Create prompt
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", HEALTHCARE_AGENT_PROMPT),
-            MessagesPlaceholder(variable_name="chat_history", optional=True),
-            ("human", "{input}"),
-            MessagesPlaceholder(variable_name="agent_scratchpad")
-        ])
+        agent = None
         
-        # Create agent with tool calling
-        agent = create_tool_calling_agent(
-            llm=self.model,
-            tools=self.tools,
-            prompt=prompt
-        )
+        # Try to create tool calling agent first
+        try:
+            if hasattr(self.model, "bind_tools"):
+                # Create prompt for tool calling agent
+                prompt = ChatPromptTemplate.from_messages([
+                    ("system", HEALTHCARE_AGENT_PROMPT),
+                    MessagesPlaceholder(variable_name="chat_history", optional=True),
+                    ("human", "{input}"),
+                    MessagesPlaceholder(variable_name="agent_scratchpad")
+                ])
+                
+                # Create agent with tool calling
+                # This might raise NotImplementedError if bind_tools is present but not implemented
+                agent = create_tool_calling_agent(
+                    llm=self.model,
+                    tools=self.tools,
+                    prompt=prompt
+                )
+        except (NotImplementedError, Exception) as e:
+            self.logger.warning(f"Tool calling not supported ({e}), falling back to ReAct agent")
+            agent = None
+
+        # Fallback to ReAct agent
+        if agent is None:
+            self.logger.info("Using ReAct agent fallback")
+            # Create prompt for ReAct agent
+            prompt = PromptTemplate.from_template(REACT_AGENT_PROMPT)
+            
+            # Create ReAct agent
+            agent = create_react_agent(
+                llm=self.model,
+                tools=self.tools,
+                prompt=prompt
+            )
         
         # Create executor
         executor = AgentExecutor(

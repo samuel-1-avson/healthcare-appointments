@@ -67,12 +67,16 @@ except ImportError:
 
 # Check for HuggingFace/sentence-transformers
 try:
-    from langchain_community.embeddings import HuggingFaceEmbeddings
+    from langchain_huggingface import HuggingFaceEmbeddings
     HUGGINGFACE_AVAILABLE = True
 except ImportError:
-    HUGGINGFACE_AVAILABLE = False
-    logger.info("sentence-transformers not available, local embeddings disabled")
-    HuggingFaceEmbeddings = None
+    try:
+        from langchain_community.embeddings import HuggingFaceEmbeddings
+        HUGGINGFACE_AVAILABLE = True
+    except ImportError:
+        HUGGINGFACE_AVAILABLE = False
+        logger.info("sentence-transformers not available, local embeddings disabled")
+        HuggingFaceEmbeddings = None
 
 # Check for direct OpenAI client (fallback)
 try:
@@ -246,7 +250,7 @@ class DirectOpenAIEmbeddings:
 # Simple Embeddings (No Dependencies)
 # ============================================================
 
-class SimpleHashEmbeddings:
+class SimpleHashEmbeddings(Embeddings):
     """
     Simple hash-based embeddings for testing when no providers available.
     
@@ -291,6 +295,10 @@ class SimpleHashEmbeddings:
     def embed_query(self, text: str) -> List[float]:
         """Embed a query using hash-based method."""
         return self._hash_to_vector(text)
+
+    def __call__(self, text: str) -> List[float]:
+        """Allow object to be called like a function (LangChain compatibility)."""
+        return self.embed_query(text)
 
 
 # ============================================================
@@ -401,7 +409,12 @@ class EmbeddingsManager:
     
     def _auto_select_provider(self) -> str:
         """Automatically select the best available provider."""
-        # Prefer OpenAI if available
+        # Prefer Local (HuggingFace) if available to avoid OpenAI dependency
+        if HUGGINGFACE_AVAILABLE:
+            logger.info("Auto-selected provider: local (sentence-transformers)")
+            return "local"
+
+        # Fallback to OpenAI if available
         if OPENAI_EMBEDDINGS_AVAILABLE:
             logger.info("Auto-selected provider: openai (langchain-openai)")
             return "openai"
@@ -410,11 +423,6 @@ class EmbeddingsManager:
         if OPENAI_CLIENT_AVAILABLE and os.getenv("OPENAI_API_KEY"):
             logger.info("Auto-selected provider: openai (direct client)")
             return "openai"
-        
-        # Try local embeddings
-        if HUGGINGFACE_AVAILABLE:
-            logger.info("Auto-selected provider: local (sentence-transformers)")
-            return "local"
         
         # Last resort: simple hash embeddings
         logger.warning("No embedding providers available, using simple hash embeddings")
@@ -799,7 +807,7 @@ def get_embeddings(
     Returns
     -------
     EmbeddingsManager
-        Embeddings manager instance
+        Singleton instance
     """
     global _embeddings_manager
     
@@ -810,160 +818,3 @@ def get_embeddings(
         )
     
     return _embeddings_manager
-
-
-def reset_embeddings():
-    """Reset the embeddings manager singleton and save cache."""
-    global _embeddings_manager
-    
-    if _embeddings_manager is not None:
-        _embeddings_manager.save_cache()
-        _embeddings_manager = None
-        logger.info("Embeddings manager reset")
-
-
-# ============================================================
-# Utility Functions
-# ============================================================
-
-def check_embeddings_availability() -> Dict[str, bool]:
-    """
-    Check which embedding providers are available.
-    
-    Returns
-    -------
-    dict
-        Provider availability status
-    """
-    return {
-        "openai_langchain": OPENAI_EMBEDDINGS_AVAILABLE,
-        "openai_direct": OPENAI_CLIENT_AVAILABLE,
-        "azure": AZURE_OPENAI_AVAILABLE,
-        "huggingface_local": HUGGINGFACE_AVAILABLE,
-        "langchain_core": LANGCHAIN_CORE_AVAILABLE,
-        "numpy": NUMPY_AVAILABLE
-    }
-
-
-def get_recommended_provider() -> str:
-    """
-    Get the recommended embedding provider based on availability.
-    
-    Returns
-    -------
-    str
-        Recommended provider name
-    """
-    if OPENAI_EMBEDDINGS_AVAILABLE:
-        return "openai"
-    elif OPENAI_CLIENT_AVAILABLE and os.getenv("OPENAI_API_KEY"):
-        return "openai"
-    elif HUGGINGFACE_AVAILABLE:
-        return "local"
-    else:
-        return "simple"
-
-
-def cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
-    """
-    Calculate cosine similarity between two vectors.
-    
-    Parameters
-    ----------
-    vec1 : List[float]
-        First vector
-    vec2 : List[float]
-        Second vector
-    
-    Returns
-    -------
-    float
-        Cosine similarity (-1 to 1)
-    """
-    if NUMPY_AVAILABLE:
-        a = np.array(vec1)
-        b = np.array(vec2)
-        return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
-    else:
-        # Pure Python implementation
-        dot_product = sum(a * b for a, b in zip(vec1, vec2))
-        norm1 = sum(a * a for a in vec1) ** 0.5
-        norm2 = sum(b * b for b in vec2) ** 0.5
-        
-        if norm1 == 0 or norm2 == 0:
-            return 0.0
-        
-        return dot_product / (norm1 * norm2)
-
-
-def test_embeddings(provider: str = "auto") -> Dict[str, Any]:
-    """
-    Test embedding functionality.
-    
-    Parameters
-    ----------
-    provider : str
-        Provider to test
-    
-    Returns
-    -------
-    dict
-        Test results
-    """
-    results = {
-        "provider": provider,
-        "success": False,
-        "dimension": None,
-        "similarity_test": None,
-        "error": None
-    }
-    
-    try:
-        manager = EmbeddingsManager(provider=provider, use_cache=False)
-        results["provider"] = manager.provider
-        
-        # Test embedding
-        test_texts = [
-            "The patient missed their appointment.",
-            "The patient did not show up for their visit.",
-            "The weather is sunny today."
-        ]
-        
-        embeddings = manager.embed_texts(test_texts)
-        
-        results["dimension"] = len(embeddings[0])
-        results["success"] = True
-        
-        # Test similarity
-        sim_12 = cosine_similarity(embeddings[0], embeddings[1])
-        sim_13 = cosine_similarity(embeddings[0], embeddings[2])
-        
-        results["similarity_test"] = {
-            "similar_texts": round(sim_12, 4),
-            "different_texts": round(sim_13, 4),
-            "pass": sim_12 > sim_13  # Similar texts should have higher similarity
-        }
-        
-    except Exception as e:
-        results["error"] = str(e)
-    
-    return results
-
-
-# ============================================================
-# Module Initialization
-# ============================================================
-
-def _log_availability():
-    """Log embedding provider availability on module load."""
-    availability = check_embeddings_availability()
-    available_providers = [k for k, v in availability.items() if v]
-    
-    if available_providers:
-        logger.debug(f"Available embedding providers: {available_providers}")
-    else:
-        logger.warning("No embedding providers available!")
-
-
-# Log on import
-_log_availability()

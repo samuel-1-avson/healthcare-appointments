@@ -88,7 +88,7 @@ class PolicyRetriever(BaseRetriever):
             config=config or RetrievalConfig(),
             **kwargs
         )
-        self.logger = logging.getLogger(self.__class__.__name__)
+        # self.logger = logging.getLogger(self.__class__.__name__)
     
     def _get_relevant_documents(
         self,
@@ -159,7 +159,7 @@ class PolicyRetriever(BaseRetriever):
         # Final limit
         all_docs = all_docs[:self.config.top_k]
         
-        self.logger.debug(f"Retrieved {len(all_docs)} documents for: {query[:50]}...")
+        logger.debug(f"Retrieved {len(all_docs)} documents for: {query[:50]}...")
         
         return all_docs
     
@@ -198,7 +198,7 @@ Alternative questions (one per line):
             return alternatives[:self.config.expansion_count]
             
         except Exception as e:
-            self.logger.warning(f"Query expansion failed: {e}")
+            logger.warning(f"Query expansion failed: {e}")
             return []
     
     def _rerank(

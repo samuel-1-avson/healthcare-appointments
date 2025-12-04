@@ -75,7 +75,10 @@ def get_chat_model(
             )
             
         elif model_config.provider == "local":
-            from langchain_community.chat_models import ChatOllama
+            try:
+                from langchain_ollama import ChatOllama
+            except ImportError:
+                from langchain_community.chat_models import ChatOllama
             import os
             
             # Use localhost by default, or host.docker.internal if explicitly set or in Docker

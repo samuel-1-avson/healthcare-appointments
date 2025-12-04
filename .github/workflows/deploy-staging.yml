@@ -7,9 +7,18 @@ on:
       - develop
   workflow_dispatch:  # Allow manual trigger
 
+# Cancel in-progress runs when a new commit is pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository_owner }}/healthcare
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   build-and-push:
@@ -79,8 +88,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push
     environment:
-      name: staging
-      url: https://staging.healthcare-app.com  # Update with actual URL
+      name: staging-${{ github.ref_name }}
+      url: https://${{ github.ref_name }}.healthcare-app.com  # Update with actual URL
 
     steps:
       - name: Checkout code

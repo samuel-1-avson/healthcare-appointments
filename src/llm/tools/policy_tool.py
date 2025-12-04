@@ -10,7 +10,7 @@ import logging
 from typing import Optional, Type, List, Dict, Any
 
 from pydantic import BaseModel, Field
-from pydantic.v1 import PrivateAttr  # Added for Pydantic v1 compatibility
+from pydantic import PrivateAttr
 from langchain_core.tools import BaseTool
 from langchain_core.callbacks import CallbackManagerForToolRun
 

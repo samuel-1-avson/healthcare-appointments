@@ -12,15 +12,12 @@ import json
 
 from langchain_core.tools import BaseTool, StructuredTool, tool
 from langchain_core.callbacks import CallbackManagerForToolRun
-from pydantic.v1 import BaseModel, Field, PrivateAttr
+from pydantic import BaseModel, Field, PrivateAttr
 
 from ..langchain_config import get_langchain_settings
 
 
 logger = logging.getLogger(__name__)
-
-
-# ==================== Input Schemas ====================
 
 class PredictionInput(BaseModel):
     """Input schema for prediction tool."""

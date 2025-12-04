@@ -1,0 +1,4 @@
+C:\Users\samue\AppData\Roaming\Python\Python314\site-packages\langchain_core\_api\deprecation.py:27: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+  from pydantic.v1.fields import FieldInfo as FieldInfoV1
+Checking imports...
+[FAIL] Import failed: No module named 'src.llm.production.rate_limiting'

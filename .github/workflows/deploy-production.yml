@@ -16,17 +16,26 @@ on:
         type: boolean
         default: false
 
+# Ensure only one production deployment runs at a time
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository_owner }}/healthcare
+
+permissions:
+  contents: read
+  packages: read
 
 jobs:
   deploy-production:
     name: Deploy to Production (${{ github.event.inputs.environment }})
     runs-on: ubuntu-latest
     environment:
-      name: production
-      url: https://healthcare-app.com
+      name: production-${{ github.event.inputs.environment }}
+      url: https://${{ github.event.inputs.environment }}.healthcare-app.com
 
     steps:
       - name: Checkout code
@@ -75,7 +84,7 @@ jobs:
     needs: deploy-production
     if: github.event.inputs.promote_to_live == 'true'
     environment:
-      name: production-traffic-switch
+      name: production-${{ github.event.inputs.environment }}
       url: https://healthcare-app.com
 
     steps:

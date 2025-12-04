@@ -16,6 +16,7 @@ import logging
 import time
 import json
 import hashlib
+import requests
 from typing import Optional, Dict, Any, List, Union, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -253,6 +254,88 @@ class AnthropicProvider(BaseLLMProvider):
         return len(text) // 4
 
 
+class LocalProvider(BaseLLMProvider):
+    """Local LLM provider (Ollama)."""
+    
+    def __init__(self, base_url: str = "http://localhost:11434"):
+        self.base_url = base_url
+        self._available = self._check_availability()
+        
+    def _check_availability(self) -> bool:
+        try:
+            # Fast timeout for check
+            response = requests.get(f"{self.base_url}/api/tags", timeout=2.0)
+            return response.status_code == 200
+        except Exception:
+            return False
+            
+    def complete(
+        self,
+        messages: List[Message],
+        model_config: LLMModelConfig,
+        **kwargs
+    ) -> LLMResponse:
+        """Generate completion using local Ollama."""
+        if not self._available:
+            # Fallback for when local LLM is not running
+            return LLMResponse(
+                content="[Local LLM Unavailable] Please ensure Ollama is running on port 11434. This is a mock response.",
+                model=model_config.name,
+                provider="local",
+                usage=TokenUsage(),
+                finish_reason="error",
+                latency_ms=0.0
+            )
+            
+        start_time = time.time()
+        
+        payload = {
+            "model": model_config.name,
+            "messages": [m.to_dict() for m in messages],
+            "stream": False,
+            "options": {
+                "temperature": kwargs.get("temperature", model_config.temperature),
+                "num_predict": kwargs.get("max_tokens", model_config.max_tokens),
+                "top_p": kwargs.get("top_p", model_config.top_p),
+            }
+        }
+        
+        try:
+            response = requests.post(f"{self.base_url}/api/chat", json=payload, timeout=kwargs.get("timeout", 120.0))
+            response.raise_for_status()
+            result = response.json()
+            
+            latency_ms = (time.time() - start_time) * 1000
+            
+            # Extract usage if available
+            prompt_tokens = result.get("prompt_eval_count", 0)
+            completion_tokens = result.get("eval_count", 0)
+            
+            usage = TokenUsage(
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                total_tokens=prompt_tokens + completion_tokens
+            )
+            
+            content = result.get("message", {}).get("content", "")
+            
+            return LLMResponse(
+                content=content,
+                model=model_config.name,
+                provider="local",
+                usage=usage,
+                finish_reason=result.get("done_reason", "stop"),
+                latency_ms=latency_ms,
+                raw_response=result
+            )
+        except Exception as e:
+            logger.error(f"Local LLM request failed: {e}")
+            raise RuntimeError(f"Local LLM failed: {e}")
+
+    def count_tokens(self, text: str, model: str) -> int:
+        return len(text) // 4
+
+
 # ==================== Main Client ====================
 
 class LLMClient:
@@ -310,6 +393,9 @@ class LLMClient:
         if self.config.has_anthropic():
             self._providers["anthropic"] = AnthropicProvider(self.config.anthropic_api_key)
             self.logger.info("Anthropic provider initialized")
+            
+        # Always initialize local provider as fallback/default
+        self._providers["local"] = LocalProvider()
         
         if not self._providers:
             self.logger.warning("No LLM providers configured!")

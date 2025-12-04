@@ -207,7 +207,27 @@ class RagasEvaluator:
         
         # Run evaluation
         try:
-            results = evaluate(dataset, metrics=metrics_to_use)
+            # Configure local LLM and Embeddings for Ragas to avoid OpenAI dependency
+            from ..langchain_config import get_chat_model
+            from ..rag.embeddings import get_embeddings
+            from ragas.llms.base import LangchainLLMWrapper
+            from ragas.embeddings import LangchainEmbeddingsWrapper
+
+            # Get local components explicitly
+            llm = get_chat_model(provider="local")
+            embeddings_manager = get_embeddings(provider="local")
+            
+            # Wrap for Ragas
+            ragas_llm = LangchainLLMWrapper(llm)
+            ragas_embeddings = LangchainEmbeddingsWrapper(embeddings=embeddings_manager.embeddings)
+            
+            logger.info("Starting Ragas evaluation with local LLM and embeddings...")
+            results = evaluate(
+                dataset, 
+                metrics=metrics_to_use,
+                llm=ragas_llm,
+                embeddings=ragas_embeddings
+            )
             
             # Convert to pandas and then dict
             df = results.to_pandas()

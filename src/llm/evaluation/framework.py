@@ -264,7 +264,7 @@ class EvaluationReport:
         
         # Also save markdown
         md_path = filepath.with_suffix('.md')
-        with open(md_path, 'w') as f:
+        with open(md_path, 'w', encoding='utf-8') as f:
             f.write(self.to_markdown())
         
         logger.info(f"Report saved to {filepath}")
@@ -488,14 +488,14 @@ class EvaluationFramework:
                 contexts=[s.get("content", "") for s in result.get("sources", [])]
             )
             
-            if detection["has_hallucination"]:
+            if detection.has_hallucination:
                 total_hallucinations += 1
             
             details["tests"].append({
                 "question": question,
-                "has_hallucination": detection["has_hallucination"],
-                "confidence": detection["confidence"],
-                "issues": detection.get("issues", [])
+                "has_hallucination": detection.has_hallucination,
+                "confidence": detection.confidence,
+                "issues": detection.issues
             })
         
         hallucination_rate = total_hallucinations / len(questions)

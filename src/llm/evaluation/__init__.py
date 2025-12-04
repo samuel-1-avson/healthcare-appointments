@@ -17,8 +17,7 @@ from .metrics import (
     calculate_metrics
 )
 from .ragas_eval import (
-    RagasEvaluator,
-    evaluate_rag_pipeline
+    RagasEvaluator
 )
 from .hallucination import (
     HallucinationDetector,
@@ -45,7 +44,6 @@ __all__ = [
     "MetricResult",
     "calculate_metrics",
     "RagasEvaluator",
-    "evaluate_rag_pipeline",
     "HallucinationDetector",
     "detect_hallucinations",
     "SafetyEvaluator",

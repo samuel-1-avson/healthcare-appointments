@@ -5,6 +5,7 @@ Conversation Memory
 Memory management for healthcare assistant conversations.
 """
 
+from __future__ import annotations
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
@@ -16,15 +17,11 @@ from langchain_core.messages import (
     BaseMessage,
     HumanMessage,
     AIMessage,
-    SystemMessage
+    SystemMessage,
+    get_buffer_string
 )
 from langchain_core.chat_history import BaseChatMessageHistory
-from langchain.memory import (
-    ConversationBufferMemory,
-    ConversationBufferWindowMemory,
-    ConversationSummaryMemory,
-    ConversationSummaryBufferMemory
-)
+from langchain_core.memory import BaseMemory
 
 from ..langchain_config import get_langchain_settings, get_chat_model
 
@@ -100,6 +97,123 @@ class InMemoryHistory(BaseChatMessageHistory):
             "human_messages": sum(1 for m in self._messages if isinstance(m, HumanMessage)),
             "ai_messages": sum(1 for m in self._messages if isinstance(m, AIMessage))
         }
+
+
+# ==================== Custom Memory Classes ====================
+
+class CustomConversationBufferMemory(BaseMemory):
+    """Custom implementation of ConversationBufferMemory to avoid langchain.memory issues."""
+    
+    chat_memory: BaseChatMessageHistory
+    output_key: Optional[str] = None
+    input_key: Optional[str] = None
+    return_messages: bool = False
+    memory_key: str = "history"
+    
+    def __init__(
+        self,
+        chat_memory: BaseChatMessageHistory,
+        return_messages: bool = False,
+        memory_key: str = "history",
+        **kwargs
+    ):
+        super().__init__(
+            chat_memory=chat_memory,
+            return_messages=return_messages,
+            memory_key=memory_key,
+            **kwargs
+        )
+    
+    @property
+    def memory_variables(self) -> List[str]:
+        return [self.memory_key]
+    
+    def load_memory_variables(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """Return history buffer."""
+        if self.return_messages:
+            buffer = self.chat_memory.messages
+        else:
+            buffer = get_buffer_string(self.chat_memory.messages)
+        return {self.memory_key: buffer}
+    
+    def save_context(self, inputs: Dict[str, Any], outputs: Dict[str, str]) -> None:
+        """Save context from this conversation to buffer."""
+        input_str, output_str = self._get_input_output(inputs, outputs)
+        self.chat_memory.add_user_message(input_str)
+        self.chat_memory.add_ai_message(output_str)
+    
+    def clear(self) -> None:
+        """Clear memory contents."""
+        self.chat_memory.clear()
+        
+    def _get_input_output(
+        self, inputs: Dict[str, Any], outputs: Dict[str, str]
+    ) -> tuple[str, str]:
+        if self.input_key:
+            input_str = inputs[self.input_key]
+        else:
+            # Assume single input or "input" key
+            if "input" in inputs:
+                input_str = inputs["input"]
+            elif "question" in inputs:
+                input_str = inputs["question"]
+            elif len(inputs) == 1:
+                input_str = list(inputs.values())[0]
+            else:
+                # Fallback for empty or complex inputs
+                input_str = str(inputs)
+                
+        if self.output_key:
+            output_str = outputs[self.output_key]
+        else:
+            # Assume single output or "output" key
+            if "output" in outputs:
+                output_str = outputs["output"]
+            elif "text" in outputs:
+                output_str = outputs["text"]
+            elif "answer" in outputs:
+                output_str = outputs["answer"]
+            elif len(outputs) == 1:
+                output_str = list(outputs.values())[0]
+            else:
+                # Fallback
+                output_str = str(outputs)
+                
+        return str(input_str), str(output_str)
+
+
+class CustomConversationBufferWindowMemory(CustomConversationBufferMemory):
+    """Custom implementation of ConversationBufferWindowMemory."""
+    
+    k: int = 5
+    
+    def __init__(
+        self,
+        chat_memory: BaseChatMessageHistory,
+        k: int = 5,
+        return_messages: bool = False,
+        memory_key: str = "history",
+        **kwargs
+    ):
+        super().__init__(
+            chat_memory=chat_memory,
+            return_messages=return_messages,
+            memory_key=memory_key,
+            k=k,
+            **kwargs
+        )
+        
+    def load_memory_variables(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """Return history buffer."""
+        messages = self.chat_memory.messages
+        if self.k > 0:
+            messages = messages[-self.k * 2:]
+            
+        if self.return_messages:
+            buffer = messages
+        else:
+            buffer = get_buffer_string(messages)
+        return {self.memory_key: buffer}
 
 
 # ==================== Memory Manager ====================
@@ -180,17 +294,16 @@ class ConversationMemoryManager:
     
     def _create_memory(self, history: InMemoryHistory):
         """Create appropriate memory type."""
-        settings = get_langchain_settings()
         
         if self.memory_type == "buffer":
-            return ConversationBufferMemory(
+            return CustomConversationBufferMemory(
                 chat_memory=history,
                 return_messages=True,
                 memory_key="chat_history"
             )
         
         elif self.memory_type == "buffer_window":
-            return ConversationBufferWindowMemory(
+            return CustomConversationBufferWindowMemory(
                 chat_memory=history,
                 k=self.max_messages,
                 return_messages=True,
@@ -198,20 +311,20 @@ class ConversationMemoryManager:
             )
         
         elif self.memory_type == "summary":
-            llm = get_chat_model(temperature=0)
-            return ConversationSummaryMemory(
-                llm=llm,
+            # Fallback to buffer for now to avoid imports
+            logger.warning("Summary memory not fully supported in custom implementation, falling back to buffer")
+            return CustomConversationBufferMemory(
                 chat_memory=history,
                 return_messages=True,
                 memory_key="chat_history"
             )
         
         elif self.memory_type == "summary_buffer":
-            llm = get_chat_model(temperature=0)
-            return ConversationSummaryBufferMemory(
-                llm=llm,
+            # Fallback to buffer window
+            logger.warning("Summary buffer memory not fully supported in custom implementation, falling back to buffer window")
+            return CustomConversationBufferWindowMemory(
                 chat_memory=history,
-                max_token_limit=1000,
+                k=self.max_messages,
                 return_messages=True,
                 memory_key="chat_history"
             )
@@ -395,18 +508,18 @@ def create_memory(
     )
     
     if memory_type == "buffer":
-        return ConversationBufferMemory(
+        return CustomConversationBufferMemory(
             chat_memory=history,
             return_messages=True
         )
     elif memory_type == "buffer_window":
-        return ConversationBufferWindowMemory(
+        return CustomConversationBufferWindowMemory(
             chat_memory=history,
             k=max_messages,
             return_messages=True
         )
     else:
-        return ConversationBufferMemory(
+        return CustomConversationBufferMemory(
             chat_memory=history,
             return_messages=True
         )

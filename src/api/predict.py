@@ -176,7 +176,7 @@ class NoShowPredictor:
                 logger.info(f"Feature importance loaded from {feature_importance_path}")
             except Exception as e:
                 logger.warning(f"Failed to load feature importance: {e}")
-
+                
         # Load SHAP explainer
         explainer_path = model_path.parent / "shap_explainer.joblib"
         if explainer_path.exists():
@@ -359,8 +359,17 @@ class NoShowPredictor:
         """
         # Determine expected features
         expected_features = []
-        if self.input_features:
+        
+        # Priority 1: Use feature names from preprocessor if available (most reliable)
+        if hasattr(self.preprocessor, 'feature_names_in_'):
+            expected_features = list(self.preprocessor.feature_names_in_)
+            logger.info(f"Using {len(expected_features)} features from preprocessor.feature_names_in_")
+            
+        # Priority 2: Use input_features from metadata
+        elif self.input_features:
             expected_features = self.input_features
+            
+        # Priority 3: Legacy fallback for specific 30-feature model
         elif hasattr(self.preprocessor, 'n_features_in_') and self.preprocessor.n_features_in_ == 30:
              # Hardcoded list of 30 features from inspection
             expected_features = [

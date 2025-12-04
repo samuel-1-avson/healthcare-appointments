@@ -1,0 +1,54 @@
+{
+  "metadata": {
+    "created_at": "2025-12-04T08:10:59.595359",
+    "test_count": 5,
+    "version": "1.0.0"
+  },
+  "tests": [
+    {
+      "id": "84754e7e",
+      "question": "What is the no-show policy?",
+      "baseline_answer": "According to the provided policy context, there is no specific \"no-show\" policy mentioned. However, it does mention a \"Late Arrival Policy\" (Section 5) that outlines procedures for patients who arrive late.\n\nThe Late Arrival Policy states:\n\n* Patients have a 10-minute grace period\n* After 10 minutes, check-in with reception\n* After 15 minutes, appointment may be forfeited\n\nAdditionally, the policy mentions that if a patient arrives late, they may be offered a later slot same day or next available appointment. However, it is left to the provider's discretion whether to count the late arrival as a no-show.\n\nI don't have information about a specific \"no-show\" policy in the provided context.",
+      "required_elements": [],
+      "forbidden_elements": [],
+      "min_similarity": 0.7,
+      "category": "general"
+    },
+    {
+      "id": "20338b42",
+      "question": "How many reminders do patients receive?",
+      "baseline_answer": "According to the provided policy context, patients receive automatic reminders:\n\n* 7 days before: Email reminder (if email on file) [Document 3: appointment_policy.md, section 4.1]\n* 48 hours before: SMS reminder (if phone on file) [Document 3: appointment_policy.md, section 4.1]\n* 24 hours before: SMS reminder with confirmation request [Document 3: appointment_policy.md, section 4.1]\n* 2 hours before: Final SMS reminder [Document 3: appointment_policy.md, section 4.1]\n\nPatients are asked to confirm appointments by replying \"YES\" or \"CONFIRM\" to SMS, clicking a confirmation link in email, or confirming via patient portal [Document 3: appointment_policy.md, section 4.2].",
+      "required_elements": [],
+      "forbidden_elements": [],
+      "min_similarity": 0.7,
+      "category": "general"
+    },
+    {
+      "id": "c38a6724",
+      "question": "What are the consequences of missing appointments?",
+      "baseline_answer": "I don't have information about the consequences of missing appointments in the provided policy context. The policies only discuss appointment scheduling, reminders, and interventions for patients who are at risk of not showing up to their appointments. There is no mention of the consequences of missing appointments.",
+      "required_elements": [],
+      "forbidden_elements": [],
+      "min_similarity": 0.7,
+      "category": "general"
+    },
+    {
+      "id": "50990f73",
+      "question": "Can appointment fees be waived?",
+      "baseline_answer": "I don't have information about that in the available policies. The provided context only discusses appointment scheduling, reminder systems, and consequences for no-shows, but does not mention waiving fees. If you're looking to inquire about fee waivers, I recommend speaking with a supervisor or reviewing additional policy documents.",
+      "required_elements": [],
+      "forbidden_elements": [],
+      "min_similarity": 0.7,
+      "category": "general"
+    },
+    {
+      "id": "554954f5",
+      "question": "How do I cancel an appointment?",
+      "baseline_answer": "According to the provided policy context, patients can cancel appointments by:\n\n* Calling (555) 123-4567\n* Using the patient portal\n* Replying \"CANCEL\" to appointment reminder SMS\n* Using the mobile app\n\nThis information is stated in Document 4: appointment_policy.md under section 2.2 How to Cancel.\n\nNote that there are specific cancellation timelines and fees associated with late cancellations, as outlined in sections 2.1 Cancellation Timeline and 2.3 Cancellation Fees.",
+      "required_elements": [],
+      "forbidden_elements": [],
+      "min_similarity": 0.7,
+      "category": "general"
+    }
+  ]
+}

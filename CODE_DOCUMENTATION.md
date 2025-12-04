@@ -113,6 +113,67 @@ This document provides a detailed explanation of the function and purpose of eac
 - Includes health check endpoints
 - Lightweight alternative for resource-constrained environments
 
+### System Management Scripts
+
+#### `setup.ps1`
+**Purpose**: Initial environment setup script.
+
+**Key Functions**:
+- Creates virtual environment
+- Installs dependencies
+- Sets up database
+- Generates sample data
+- Configures environment files
+
+#### `start-system.ps1`
+**Purpose**: Starts the entire system (backend + frontend).
+
+**Key Functions**:
+- Supports multiple modes (dev, docker, production)
+- Starts backend API server
+- Starts frontend development server
+- Opens browser
+- Monitors processes
+
+**Key Parameters**:
+- `-Mode`: Deployment mode (dev/docker/prod)
+- `-Port`: Port number
+- `-SkipEnvCheck`: Skip environment validation
+
+#### `stop-system.ps1`
+**Purpose**: Gracefully stops all running services.
+
+**Key Functions**:
+- Stops API server
+- Stops frontend server
+- Stops Docker containers
+- Cleans up processes
+
+#### `test-system.ps1`
+**Purpose**: Comprehensive system testing.
+
+**Key Functions**:
+- Runs unit tests
+- Runs integration tests
+- Runs API tests
+- Generates coverage reports
+- Runs end-to-end tests
+
+#### `run_system.ps1`
+**Purpose**: Legacy system startup script.
+
+#### `start.ps1`
+**Purpose**: Quick start script for development.
+
+#### `migrate-to-py312.ps1`
+**Purpose**: Migration script for Python 3.12 upgrade.
+
+**Key Functions**:
+- Creates new virtual environment with Python 3.12
+- Reinstalls dependencies
+- Tests compatibility
+- Updates configuration
+
 ### Testing Files
 
 #### `test_day1.py`
@@ -1194,6 +1255,17 @@ Contains production-ready LLM components:
   - `batch_predict()`: Makes batch predictions
   - `chat()`: Sends chat messages
 
+- Batch prediction submission
+
+#### `scripts/docker-deploy.sh`
+**Purpose**: Deploys Docker containers to production environment.
+
+**Key Functions**:
+- Pulls latest images
+- Stops existing containers
+- Starts new containers
+- Runs health checks
+
 #### `scripts/test_api_client.py`
 **Purpose**: Tests for the API client.
 
@@ -1566,66 +1638,7 @@ Contains production-ready LLM components:
 - `make docker-build`: Build Docker images
 - `make docker-up`: Start Docker services
 
-### PowerShell Scripts
 
-#### `setup.ps1`
-**Purpose**: Initial environment setup script.
-
-**Key Functions**:
-- Creates virtual environment
-- Installs dependencies
-- Sets up database
-- Generates sample data
-- Configures environment files
-
-#### `start-system.ps1`
-**Purpose**: Starts the entire system (backend + frontend).
-
-**Key Functions**:
-- Supports multiple modes (dev, docker, production)
-- Starts backend API server
-- Starts frontend development server
-- Opens browser
-- Monitors processes
-
-**Key Parameters**:
-- `-Mode`: Deployment mode (dev/docker/prod)
-- `-Port`: Port number
-- `-SkipEnvCheck`: Skip environment validation
-
-#### `stop-system.ps1`
-**Purpose**: Gracefully stops all running services.
-
-**Key Functions**:
-- Stops API server
-- Stops frontend server
-- Stops Docker containers
-- Cleans up processes
-
-#### `test-system.ps1`
-**Purpose**: Comprehensive system testing.
-
-**Key Functions**:
-- Runs unit tests
-- Runs integration tests
-- Runs API tests
-- Generates coverage reports
-- Runs end-to-end tests
-
-#### `run_system.ps1`
-**Purpose**: Legacy system startup script.
-
-#### `start.ps1`
-**Purpose**: Quick start script for development.
-
-#### `migrate-to-py312.ps1`
-**Purpose**: Migration script for Python 3.12 upgrade.
-
-**Key Functions**:
-- Creates new virtual environment with Python 3.12
-- Reinstalls dependencies
-- Tests compatibility
-- Updates configuration
 
 ### Git Configuration
 

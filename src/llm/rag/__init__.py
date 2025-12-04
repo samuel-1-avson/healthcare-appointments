@@ -19,7 +19,8 @@ from .document_loader import (
 from .chunking import (
     TextChunker,
     ChunkingStrategy,
-    create_chunks
+    create_chunks,
+    analyze_chunks
 )
 from .embeddings import (
     EmbeddingsManager,
@@ -42,6 +43,7 @@ __all__ = [
     "TextChunker",
     "ChunkingStrategy",
     "create_chunks",
+    "analyze_chunks",
     "EmbeddingsManager",
     "get_embeddings",
     "VectorStoreManager",

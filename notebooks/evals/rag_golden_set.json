@@ -1,0 +1,351 @@
+{
+  "questions": [
+    {
+      "question": "What is the cancellation policy?",
+      "expected_answer": "Patients must provide at least 24 hours notice to cancel without penalty. Cancellations with less than 24 hours notice are considered late cancellations.",
+      "category": "cancellation",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What happens if I cancel less than 12 hours before my appointment?",
+      "expected_answer": "Cancellations made less than 12 hours before the appointment may be recorded as a no-show equivalent.",
+      "category": "cancellation",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What is considered a no-show?",
+      "expected_answer": "A no-show occurs when a patient fails to arrive for their scheduled appointment, arrives more than 15 minutes late without prior notice, or does not cancel or reschedule before the appointment time.",
+      "category": "noshow",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What are the consequences of multiple no-shows?",
+      "expected_answer": "First no-show: verbal reminder. Second no-show: written warning letter. Third no-show: $75 fee and pre-payment required. Fourth no-show: review by patient relations, possible discharge.",
+      "category": "noshow",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "Can no-show fees be waived?",
+      "expected_answer": "Yes, exceptions may be made for medical emergencies, hospitalization, death in immediate family, severe weather emergencies, or transportation emergencies with documentation. Patients may appeal within 14 days.",
+      "category": "noshow",
+      "difficulty": "hard",
+      "required_sources": []
+    },
+    {
+      "question": "When are appointment reminders sent?",
+      "expected_answer": "Reminders are sent at: 7 days before (email), 48 hours before (SMS), 24 hours before (SMS with confirmation request), and 2 hours before (final SMS).",
+      "category": "reminders",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What interventions are used for high-risk patients?",
+      "expected_answer": "High-risk patients receive phone calls at 72 hours before, enhanced SMS reminders, transportation assistance offers, barrier assessment, and waitlist backup scheduling.",
+      "category": "intervention",
+      "difficulty": "hard",
+      "required_sources": []
+    },
+    {
+      "question": "What is the cancellation policy?",
+      "expected_answer": "Patients must provide at least 24 hours notice to cancel without penalty. Cancellations with less than 24 hours notice are considered late cancellations.",
+      "category": "cancellation",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What happens if I cancel less than 12 hours before my appointment?",
+      "expected_answer": "Cancellations made less than 12 hours before the appointment may be recorded as a no-show equivalent.",
+      "category": "cancellation",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What is considered a no-show?",
+      "expected_answer": "A no-show occurs when a patient fails to arrive for their scheduled appointment, arrives more than 15 minutes late without prior notice, or does not cancel or reschedule before the appointment time.",
+      "category": "noshow",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What are the consequences of multiple no-shows?",
+      "expected_answer": "First no-show: verbal reminder. Second no-show: written warning letter. Third no-show: $75 fee and pre-payment required. Fourth no-show: review by patient relations, possible discharge.",
+      "category": "noshow",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "Can no-show fees be waived?",
+      "expected_answer": "Yes, exceptions may be made for medical emergencies, hospitalization, death in immediate family, severe weather emergencies, or transportation emergencies with documentation. Patients may appeal within 14 days.",
+      "category": "noshow",
+      "difficulty": "hard",
+      "required_sources": []
+    },
+    {
+      "question": "When are appointment reminders sent?",
+      "expected_answer": "Reminders are sent at: 7 days before (email), 48 hours before (SMS), 24 hours before (SMS with confirmation request), and 2 hours before (final SMS).",
+      "category": "reminders",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What interventions are used for high-risk patients?",
+      "expected_answer": "High-risk patients receive phone calls at 72 hours before, enhanced SMS reminders, transportation assistance offers, barrier assessment, and waitlist backup scheduling.",
+      "category": "intervention",
+      "difficulty": "hard",
+      "required_sources": []
+    },
+    {
+      "question": "What is the cancellation policy?",
+      "expected_answer": "Patients must provide at least 24 hours notice to cancel without penalty. Cancellations with less than 24 hours notice are considered late cancellations.",
+      "category": "cancellation",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What happens if I cancel less than 12 hours before my appointment?",
+      "expected_answer": "Cancellations made less than 12 hours before the appointment may be recorded as a no-show equivalent.",
+      "category": "cancellation",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What is considered a no-show?",
+      "expected_answer": "A no-show occurs when a patient fails to arrive for their scheduled appointment, arrives more than 15 minutes late without prior notice, or does not cancel or reschedule before the appointment time.",
+      "category": "noshow",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What are the consequences of multiple no-shows?",
+      "expected_answer": "First no-show: verbal reminder. Second no-show: written warning letter. Third no-show: $75 fee and pre-payment required. Fourth no-show: review by patient relations, possible discharge.",
+      "category": "noshow",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "Can no-show fees be waived?",
+      "expected_answer": "Yes, exceptions may be made for medical emergencies, hospitalization, death in immediate family, severe weather emergencies, or transportation emergencies with documentation. Patients may appeal within 14 days.",
+      "category": "noshow",
+      "difficulty": "hard",
+      "required_sources": []
+    },
+    {
+      "question": "When are appointment reminders sent?",
+      "expected_answer": "Reminders are sent at: 7 days before (email), 48 hours before (SMS), 24 hours before (SMS with confirmation request), and 2 hours before (final SMS).",
+      "category": "reminders",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What interventions are used for high-risk patients?",
+      "expected_answer": "High-risk patients receive phone calls at 72 hours before, enhanced SMS reminders, transportation assistance offers, barrier assessment, and waitlist backup scheduling.",
+      "category": "intervention",
+      "difficulty": "hard",
+      "required_sources": []
+    },
+    {
+      "question": "What is the cancellation policy?",
+      "expected_answer": "Patients must provide at least 24 hours notice to cancel without penalty. Cancellations with less than 24 hours notice are considered late cancellations.",
+      "category": "cancellation",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What happens if I cancel less than 12 hours before my appointment?",
+      "expected_answer": "Cancellations made less than 12 hours before the appointment may be recorded as a no-show equivalent.",
+      "category": "cancellation",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What is considered a no-show?",
+      "expected_answer": "A no-show occurs when a patient fails to arrive for their scheduled appointment, arrives more than 15 minutes late without prior notice, or does not cancel or reschedule before the appointment time.",
+      "category": "noshow",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What are the consequences of multiple no-shows?",
+      "expected_answer": "First no-show: verbal reminder. Second no-show: written warning letter. Third no-show: $75 fee and pre-payment required. Fourth no-show: review by patient relations, possible discharge.",
+      "category": "noshow",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "Can no-show fees be waived?",
+      "expected_answer": "Yes, exceptions may be made for medical emergencies, hospitalization, death in immediate family, severe weather emergencies, or transportation emergencies with documentation. Patients may appeal within 14 days.",
+      "category": "noshow",
+      "difficulty": "hard",
+      "required_sources": []
+    },
+    {
+      "question": "When are appointment reminders sent?",
+      "expected_answer": "Reminders are sent at: 7 days before (email), 48 hours before (SMS), 24 hours before (SMS with confirmation request), and 2 hours before (final SMS).",
+      "category": "reminders",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What interventions are used for high-risk patients?",
+      "expected_answer": "High-risk patients receive phone calls at 72 hours before, enhanced SMS reminders, transportation assistance offers, barrier assessment, and waitlist backup scheduling.",
+      "category": "intervention",
+      "difficulty": "hard",
+      "required_sources": []
+    },
+    {
+      "question": "What is the cancellation policy?",
+      "expected_answer": "Patients must provide at least 24 hours notice to cancel without penalty. Cancellations with less than 24 hours notice are considered late cancellations.",
+      "category": "cancellation",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What happens if I cancel less than 12 hours before my appointment?",
+      "expected_answer": "Cancellations made less than 12 hours before the appointment may be recorded as a no-show equivalent.",
+      "category": "cancellation",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What is considered a no-show?",
+      "expected_answer": "A no-show occurs when a patient fails to arrive for their scheduled appointment, arrives more than 15 minutes late without prior notice, or does not cancel or reschedule before the appointment time.",
+      "category": "noshow",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What are the consequences of multiple no-shows?",
+      "expected_answer": "First no-show: verbal reminder. Second no-show: written warning letter. Third no-show: $75 fee and pre-payment required. Fourth no-show: review by patient relations, possible discharge.",
+      "category": "noshow",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "Can no-show fees be waived?",
+      "expected_answer": "Yes, exceptions may be made for medical emergencies, hospitalization, death in immediate family, severe weather emergencies, or transportation emergencies with documentation. Patients may appeal within 14 days.",
+      "category": "noshow",
+      "difficulty": "hard",
+      "required_sources": []
+    },
+    {
+      "question": "When are appointment reminders sent?",
+      "expected_answer": "Reminders are sent at: 7 days before (email), 48 hours before (SMS), 24 hours before (SMS with confirmation request), and 2 hours before (final SMS).",
+      "category": "reminders",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What interventions are used for high-risk patients?",
+      "expected_answer": "High-risk patients receive phone calls at 72 hours before, enhanced SMS reminders, transportation assistance offers, barrier assessment, and waitlist backup scheduling.",
+      "category": "intervention",
+      "difficulty": "hard",
+      "required_sources": []
+    },
+    {
+      "question": "What is the cancellation policy?",
+      "expected_answer": "Patients must provide at least 24 hours notice to cancel without penalty. Cancellations with less than 24 hours notice are considered late cancellations.",
+      "category": "cancellation",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What happens if I cancel less than 12 hours before my appointment?",
+      "expected_answer": "Cancellations made less than 12 hours before the appointment may be recorded as a no-show equivalent.",
+      "category": "cancellation",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What is considered a no-show?",
+      "expected_answer": "A no-show occurs when a patient fails to arrive for their scheduled appointment, arrives more than 15 minutes late without prior notice, or does not cancel or reschedule before the appointment time.",
+      "category": "noshow",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What are the consequences of multiple no-shows?",
+      "expected_answer": "First no-show: verbal reminder. Second no-show: written warning letter. Third no-show: $75 fee and pre-payment required. Fourth no-show: review by patient relations, possible discharge.",
+      "category": "noshow",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "Can no-show fees be waived?",
+      "expected_answer": "Yes, exceptions may be made for medical emergencies, hospitalization, death in immediate family, severe weather emergencies, or transportation emergencies with documentation. Patients may appeal within 14 days.",
+      "category": "noshow",
+      "difficulty": "hard",
+      "required_sources": []
+    },
+    {
+      "question": "When are appointment reminders sent?",
+      "expected_answer": "Reminders are sent at: 7 days before (email), 48 hours before (SMS), 24 hours before (SMS with confirmation request), and 2 hours before (final SMS).",
+      "category": "reminders",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What interventions are used for high-risk patients?",
+      "expected_answer": "High-risk patients receive phone calls at 72 hours before, enhanced SMS reminders, transportation assistance offers, barrier assessment, and waitlist backup scheduling.",
+      "category": "intervention",
+      "difficulty": "hard",
+      "required_sources": []
+    },
+    {
+      "question": "What is the cancellation policy?",
+      "expected_answer": "Patients must provide at least 24 hours notice to cancel without penalty. Cancellations with less than 24 hours notice are considered late cancellations.",
+      "category": "cancellation",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What happens if I cancel less than 12 hours before my appointment?",
+      "expected_answer": "Cancellations made less than 12 hours before the appointment may be recorded as a no-show equivalent.",
+      "category": "cancellation",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What is considered a no-show?",
+      "expected_answer": "A no-show occurs when a patient fails to arrive for their scheduled appointment, arrives more than 15 minutes late without prior notice, or does not cancel or reschedule before the appointment time.",
+      "category": "noshow",
+      "difficulty": "easy",
+      "required_sources": []
+    },
+    {
+      "question": "What are the consequences of multiple no-shows?",
+      "expected_answer": "First no-show: verbal reminder. Second no-show: written warning letter. Third no-show: $75 fee and pre-payment required. Fourth no-show: review by patient relations, possible discharge.",
+      "category": "noshow",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "Can no-show fees be waived?",
+      "expected_answer": "Yes, exceptions may be made for medical emergencies, hospitalization, death in immediate family, severe weather emergencies, or transportation emergencies with documentation. Patients may appeal within 14 days.",
+      "category": "noshow",
+      "difficulty": "hard",
+      "required_sources": []
+    },
+    {
+      "question": "When are appointment reminders sent?",
+      "expected_answer": "Reminders are sent at: 7 days before (email), 48 hours before (SMS), 24 hours before (SMS with confirmation request), and 2 hours before (final SMS).",
+      "category": "reminders",
+      "difficulty": "medium",
+      "required_sources": []
+    },
+    {
+      "question": "What interventions are used for high-risk patients?",
+      "expected_answer": "High-risk patients receive phone calls at 72 hours before, enhanced SMS reminders, transportation assistance offers, barrier assessment, and waitlist backup scheduling.",
+      "category": "intervention",
+      "difficulty": "hard",
+      "required_sources": []
+    }
+  ],
+  "metadata": {
+    "count": 49,
+    "updated_at": "2025-12-04T08:22:20.650742"
+  }
+}

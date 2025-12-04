@@ -1,0 +1,137 @@
+{
+  "samples": [
+    {
+      "question": "What is the cancellation policy?",
+      "answer": "According to the provided policy context, the cancellation policy is as follows:\n\n* Cancellations made 24+ hours in advance incur no penalty and allow for full flexibility to reschedule.\n* Cancellations made between 12-24 hours in advance are recorded as late cancellations.\n* Cancellations made less than 12 hours in advance may be recorded as a no-show equivalent, and subsequent late cancellations within 12 months may result in a $50 fee and counseling.\n\nPatients can cancel appointments by calling (555) 123-4567, using the patient portal, replying \"CANCEL\" to appointment reminder SMS, or using the mobile app.",
+      "contexts": [
+        "data/documents/appointment_policy.md\n\nHealthcare Clinic Appointment Policy\n\nEffective Date: January 1, 2024 Last Updated: January 15, 2024 Policy Number: AP-2024-001\n\n1. Scheduling Appointments\n\n1.1 B...",
+        "Same-day appointments are available on a limited basis\n\nUrgent care slots are reserved for same-day medical needs\n\n2. Cancellation Policy\n\n2.1 Cancellation Timeline\n\n24+ hours notice: No penalty, full...",
+        "4. Reminder System\n\n4.1 Automated Reminders\n\nPatients receive automatic reminders: - 7 days before: Email reminder (if email on file) - 48 hours before: SMS reminder (if phone on file) - 24 hours befo...",
+        "2. Intervention Procedures by Risk Level\n\n2.1 MINIMAL/LOW Risk (0-40%)\n\nGoal: Standard process, maintain good habits\n\nActions: 1. Send standard SMS reminders (48h and 24h) 2. Send email reminder (7 da..."
+      ],
+      "ground_truth": "Patients must provide at least 24 hours notice to cancel without penalty. Cancellations with less than 24 hours notice are considered late cancellations.",
+      "metadata": {
+        "latency_ms": 5805.772
+      }
+    },
+    {
+      "question": "What happens if I cancel less than 12 hours before my appointment?",
+      "answer": "According to the provided policy context, there is no specific information on what happens if you cancel less than 12 hours before your appointment. The cancellation policy only mentions a timeline for cancellations (2.1 Cancellation Timeline), which does not specify any consequences for last-minute cancellations.\n\nI don't have information about that in the available policies.",
+      "contexts": [
+        "3.2 Consequences\n\nNo-Show Count (12 months) Action 1st no-show Verbal reminder of policy 2nd no-show Written warning letter 3rd no-show $75 fee, pre-payment required for future visits 4th no-show Revi...",
+        "data/documents/appointment_policy.md\n\nHealthcare Clinic Appointment Policy\n\nEffective Date: January 1, 2024 Last Updated: January 15, 2024 Policy Number: AP-2024-001\n\n1. Scheduling Appointments\n\n1.1 B...",
+        "data/documents/reminder_procedures.md\n\nAppointment Reminder Procedures\n\nDocument Type: Standard Operating Procedure Department: Patient Access Version: 2.1\n\n1. Overview\n\nThis document outlines the pro...",
+        "data/documents/intervention_guidelines.md\n\nNo-Show Intervention Guidelines\n\nPurpose: Reduce patient no-shows through targeted interventions Audience: Patient Access Staff, Care Coordinators Last Updat..."
+      ],
+      "ground_truth": "Cancellations made less than 12 hours before the appointment may be recorded as a no-show equivalent.",
+      "metadata": {
+        "latency_ms": 3348.059
+      }
+    },
+    {
+      "question": "What is considered a no-show?",
+      "answer": "According to the provided policy context, a \"no-show\" occurs when a patient:\n\n* Fails to arrive for their scheduled appointment (Section 3.1 of Document 4: appointment_policy.md)\n* Arrives more than 15 minutes late without prior notice (Section 3.1 of Document 4: appointment_policy.md)\n* Does not cancel or reschedule before the appointment time (Section 3.1 of Document 4: appointment_policy.md)\n\nThese definitions are found in Section 3.1, \"Definition\", of the No-Show Policy in Document 4: appointment_policy.md.",
+      "contexts": [
+        "data/documents/reminder_procedures.md\n\nAppointment Reminder Procedures\n\nDocument Type: Standard Operating Procedure Department: Patient Access Version: 2.1\n\n1. Overview\n\nThis document outlines the pro...",
+        "data/documents/intervention_guidelines.md\n\nNo-Show Intervention Guidelines\n\nPurpose: Reduce patient no-shows through targeted interventions Audience: Patient Access Staff, Care Coordinators Last Updat...",
+        "Same-day appointments are available on a limited basis\n\nUrgent care slots are reserved for same-day medical needs\n\n2. Cancellation Policy\n\n2.1 Cancellation Timeline\n\n24+ hours notice: No penalty, full...",
+        "2. Intervention Procedures by Risk Level\n\n2.1 MINIMAL/LOW Risk (0-40%)\n\nGoal: Standard process, maintain good habits\n\nActions: 1. Send standard SMS reminders (48h and 24h) 2. Send email reminder (7 da..."
+      ],
+      "ground_truth": "A no-show occurs when a patient fails to arrive for their scheduled appointment, arrives more than 15 minutes late without prior notice, or does not cancel or reschedule before the appointment time.",
+      "metadata": {
+        "latency_ms": 5360.622
+      }
+    },
+    {
+      "question": "What are the consequences of multiple no-shows?",
+      "answer": "I don't have information about that in the available policies. The provided context only discusses appointment reminder procedures and does not mention consequences for multiple no-shows.",
+      "contexts": [
+        "2. Intervention Procedures by Risk Level\n\n2.1 MINIMAL/LOW Risk (0-40%)\n\nGoal: Standard process, maintain good habits\n\nActions: 1. Send standard SMS reminders (48h and 24h) 2. Send email reminder (7 da...",
+        "4. Reminder System\n\n4.1 Automated Reminders\n\nPatients receive automatic reminders: - 7 days before: Email reminder (if email on file) - 48 hours before: SMS reminder (if phone on file) - 24 hours befo...",
+        "data/documents/reminder_procedures.md\n\nAppointment Reminder Procedures\n\nDocument Type: Standard Operating Procedure Department: Patient Access Version: 2.1\n\n1. Overview\n\nThis document outlines the pro...",
+        "data/documents/appointment_policy.md\n\nHealthcare Clinic Appointment Policy\n\nEffective Date: January 1, 2024 Last Updated: January 15, 2024 Policy Number: AP-2024-001\n\n1. Scheduling Appointments\n\n1.1 B..."
+      ],
+      "ground_truth": "First no-show: verbal reminder. Second no-show: written warning letter. Third no-show: $75 fee and pre-payment required. Fourth no-show: review by patient relations, possible discharge.",
+      "metadata": {
+        "latency_ms": 1880.531
+      }
+    },
+    {
+      "question": "Can no-show fees be waived?",
+      "answer": "According to the provided policy context, specifically section 3.2 Consequences, there is a $75 fee for the third no-show, which requires pre-payment for future visits.\n\nRegarding waiving this fee, I don't have information about that in the available policies. The policy only outlines the consequences and fees associated with no-shows, but it does not provide guidance on waiving these fees.",
+      "contexts": [
+        "3.2 Consequences\n\nNo-Show Count (12 months) Action 1st no-show Verbal reminder of policy 2nd no-show Written warning letter 3rd no-show $75 fee, pre-payment required for future visits 4th no-show Revi...",
+        "5.1 Grace Period\n\nPatients have a 10-minute grace period\n\nAfter 10 minutes, check-in with reception\n\nAfter 15 minutes, appointment may be forfeited\n\n5.2 Rescheduling Late Arrivals\n\nIf a patient arrive...",
+        "data/documents/intervention_guidelines.md\n\nNo-Show Intervention Guidelines\n\nPurpose: Reduce patient no-shows through targeted interventions Audience: Patient Access Staff, Care Coordinators Last Updat...",
+        "data/documents/appointment_policy.md\n\nHealthcare Clinic Appointment Policy\n\nEffective Date: January 1, 2024 Last Updated: January 15, 2024 Policy Number: AP-2024-001\n\n1. Scheduling Appointments\n\n1.1 B..."
+      ],
+      "ground_truth": "Yes, exceptions may be made for medical emergencies, hospitalization, death in immediate family, severe weather emergencies, or transportation emergencies with documentation. Patients may appeal within 14 days.",
+      "metadata": {
+        "latency_ms": 3687.7909999999997
+      }
+    }
+  ],
+  "results": [
+    {
+      "sample_id": 0,
+      "question": "What is the cancellation policy?",
+      "scores": {
+        "answer_length": 0.96,
+        "context_used": 0.21212121212121213,
+        "keyword_overlap": 0.6,
+        "ground_truth_overlap": 0.5
+      },
+      "passed": false
+    },
+    {
+      "sample_id": 1,
+      "question": "What happens if I cancel less than 12 hours before my appointment?",
+      "scores": {
+        "answer_length": 0.55,
+        "context_used": 0.08163265306122448,
+        "keyword_overlap": 0.8333333333333334,
+        "ground_truth_overlap": 0.5
+      },
+      "passed": false
+    },
+    {
+      "sample_id": 2,
+      "question": "What is considered a no-show?",
+      "scores": {
+        "answer_length": 0.74,
+        "context_used": 0.16,
+        "keyword_overlap": 0.2,
+        "ground_truth_overlap": 0.8666666666666667
+      },
+      "passed": false
+    },
+    {
+      "sample_id": 3,
+      "question": "What are the consequences of multiple no-shows?",
+      "scores": {
+        "answer_length": 0.26,
+        "context_used": 0.2,
+        "keyword_overlap": 0.42857142857142855,
+        "ground_truth_overlap": 0.047619047619047616
+      },
+      "passed": false
+    },
+    {
+      "sample_id": 4,
+      "question": "Can no-show fees be waived?",
+      "scores": {
+        "answer_length": 0.6,
+        "context_used": 0.20754716981132076,
+        "keyword_overlap": 0.2,
+        "ground_truth_overlap": 0.12
+      },
+      "passed": false
+    }
+  ],
+  "thresholds": {
+    "faithfulness": 0.7,
+    "answer_relevancy": 0.7,
+    "context_used": 0.5
+  },
+  "saved_at": "2025-12-04T05:40:23.028349"
+}
