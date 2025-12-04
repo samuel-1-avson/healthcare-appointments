@@ -25,34 +25,6 @@ cross_validation:
     - "roc_auc"
     - "f1"
     - "precision"
-    - "recall"
-    - "accuracy"
-
-# Feature Configuration
-features:
-  # Numeric features (will be scaled)
-  numeric:
-    - "age"
-    - "lead_days"
-    - "patient_total_appointments"
-    - "patient_previous_noshows"
-    - "patient_historical_noshow_rate"
-    - "neighborhood_noshow_rate"
-    - "neighborhood_avg_age"
-    - "schedule_hour"
-  
-  # Categorical features (will be encoded)
-  categorical:
-    - "gender"
-    - "age_group"
-    - "lead_time_category"
-    - "appointment_weekday"
-    - "neighborhood_risk"
-    - "health_risk_category"
-  
-  # Binary features (pass-through)
-  binary:
-    - "scholarship"
     - "hypertension"
     - "diabetes"
     - "alcoholism"
@@ -81,6 +53,70 @@ features:
     - "risk_tier"
     - "risk_tier_display"
     - "risk_percentile"
+
+# Features Configuration
+features:
+  numeric:
+    - "age"
+    - "lead_days"
+    - "patient_total_appointments"
+    - "patient_previous_noshows"
+    - "patient_previous_appointments"
+    - "patient_historical_noshow_rate"
+    - "days_since_last_appointment"
+    - "days_since_last_noshow"
+    - "total_conditions"
+    - "neighborhood_noshow_rate"
+    - "neighborhood_scholarship_rate"
+    - "neighborhood_avg_age"
+  
+  categorical:
+    - "gender"
+    - "age_group"
+    - "lead_time_category"
+    - "appointment_weekday"
+    - "appointment_month"
+    - "health_risk_category"
+    - "neighborhood_risk"
+  
+  binary:
+    - "scholarship"
+    - "hypertension"
+    - "diabetes"
+    - "alcoholism"
+    - "sms_received"
+    - "is_first_appointment"
+    - "is_monday"
+    - "is_friday"
+    - "is_weekend"
+    - "is_month_start"
+    - "is_month_end"
+    - "scheduled_in_business_hours"
+    - "has_chronic_condition"
+    - "has_disability"
+    - "severe_disability"
+    - "low_income_indicator"
+    - "young_low_income"
+    - "young_long_lead"
+    - "monday_long_lead"
+    - "first_young"
+    - "high_risk_no_sms"
+    - "elderly_chronic"
+  
+  # Bin definitions
+  age_bins: [-1, 12, 18, 30, 50, 70, 120]
+  age_labels: ["Child", "Teen", "Young Adult", "Middle Age", "Senior", "Elderly"]
+  
+  lead_time_bins: [-1, 0, 2, 7, 14, 30, 365]
+  lead_time_labels: ["Same Day", "1-2 days", "3-7 days", "8-14 days", "15-30 days", "30+ days"]
+
+  # Features to exclude from training
+  exclude:
+    - "patientid"
+    - "appointmentid"
+    - "scheduledday"
+    - "appointmentday"
+    - "neighbourhood"
 
 # Preprocessing
 preprocessing:

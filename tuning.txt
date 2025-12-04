@@ -1,0 +1,49 @@
+2025-12-04 09:13:30,727 - __main__ - INFO - Starting hyperparameter tuning...
+2025-12-04 09:13:30,739 - __main__ - INFO - Loading data from C:\Users\samue\Desktop\NSP\healthcare-appointments\data\processed\appointments_features.csv
+2025-12-04 09:13:31,157 - healthcare_pipeline.ml.Preprocessor - INFO - NoShowPreprocessor initialized
+2025-12-04 09:13:31,157 - healthcare_pipeline.ml.Preprocessor - INFO -   Target: no_show
+2025-12-04 09:13:31,157 - healthcare_pipeline.ml.Preprocessor - INFO -   Numeric features: 12
+2025-12-04 09:13:31,157 - healthcare_pipeline.ml.Preprocessor - INFO -   Categorical features: 7
+2025-12-04 09:13:31,157 - healthcare_pipeline.ml.Preprocessor - INFO -   Binary features: 22
+2025-12-04 09:13:31,157 - healthcare_pipeline.ml.Preprocessor - INFO - ============================================================
+2025-12-04 09:13:31,157 - healthcare_pipeline.ml.Preprocessor - INFO - Preparing data for ML training...
+2025-12-04 09:13:31,157 - healthcare_pipeline.ml.Preprocessor - INFO - Selecting features...
+2025-12-04 09:13:31,157 - healthcare_pipeline.ml.Preprocessor - INFO - Validating features...
+2025-12-04 09:13:31,157 - healthcare_pipeline.ml.Preprocessor - INFO - Validated features:
+2025-12-04 09:13:31,157 - healthcare_pipeline.ml.Preprocessor - INFO -   Numeric: 12/12
+2025-12-04 09:13:31,157 - healthcare_pipeline.ml.Preprocessor - INFO -   Categorical: 7/7
+2025-12-04 09:13:31,157 - healthcare_pipeline.ml.Preprocessor - INFO -   Binary: 22/22
+2025-12-04 09:13:31,180 - healthcare_pipeline.ml.Preprocessor - INFO - Selected 41 features
+2025-12-04 09:13:31,182 - healthcare_pipeline.ml.Preprocessor - INFO - Target distribution: {0: 0.798067440534892, 1: 0.20193255946510807}
+2025-12-04 09:13:31,182 - healthcare_pipeline.ml.Preprocessor - INFO - Splitting data (test_size=0.2, stratify=True)...
+2025-12-04 09:13:31,232 - healthcare_pipeline.ml.Preprocessor - INFO - Training set: 88,421 samples
+2025-12-04 09:13:31,232 - healthcare_pipeline.ml.Preprocessor - INFO - Test set: 22,106 samples
+2025-12-04 09:13:31,232 - healthcare_pipeline.ml.Preprocessor - INFO - Train target distribution: {0: 0.798, 1: 0.202}
+2025-12-04 09:13:31,233 - healthcare_pipeline.ml.Preprocessor - INFO - Test target distribution: {0: 0.798, 1: 0.202}
+2025-12-04 09:13:31,233 - healthcare_pipeline.ml.Preprocessor - INFO - ============================================================
+2025-12-04 09:13:31,233 - healthcare_pipeline.ml.Preprocessor - INFO - Data preparation complete!
+2025-12-04 09:13:31,233 - healthcare_pipeline.ml.Preprocessor - INFO -   Training samples: 88,421
+2025-12-04 09:13:31,233 - healthcare_pipeline.ml.Preprocessor - INFO -   Test samples: 22,106
+2025-12-04 09:13:31,233 - healthcare_pipeline.ml.Preprocessor - INFO -   Features: 41
+2025-12-04 09:13:31,233 - healthcare_pipeline.ml.Preprocessor - INFO - ============================================================
+2025-12-04 09:13:31,235 - __main__ - INFO - Preprocessing training data...
+2025-12-04 09:13:31,236 - healthcare_pipeline.ml.Preprocessor - INFO - Fitting and transforming data...
+2025-12-04 09:13:31,236 - healthcare_pipeline.ml.Preprocessor - INFO - Building preprocessing pipeline...
+2025-12-04 09:13:31,236 - healthcare_pipeline.ml.Preprocessor - INFO -   Added numeric transformer for 12 features
+2025-12-04 09:13:31,236 - healthcare_pipeline.ml.Preprocessor - INFO -   Added categorical transformer for 7 features
+2025-12-04 09:13:31,236 - healthcare_pipeline.ml.Preprocessor - INFO -   Added binary transformer for 22 features
+2025-12-04 09:13:31,519 - healthcare_pipeline.ml.Preprocessor - INFO - Transformed shape: (88421, 57)
+2025-12-04 09:13:31,519 - healthcare_pipeline.ml.Preprocessor - INFO - Number of features after transformation: 57
+2025-12-04 09:13:31,519 - healthcare_pipeline.ml.HyperparameterTuner - INFO - HyperparameterTuner initialized (experiment_id: 20251204_091331)
+2025-12-04 09:13:31,519 - healthcare_pipeline.ml.HyperparameterTuner - INFO -   Strategy: random
+2025-12-04 09:13:31,519 - healthcare_pipeline.ml.HyperparameterTuner - INFO -   CV folds: 5
+2025-12-04 09:13:31,519 - healthcare_pipeline.ml.HyperparameterTuner - INFO -   Scoring: roc_auc
+2025-12-04 09:13:31,519 - healthcare_pipeline.ml.HyperparameterTuner - INFO -   Max iterations: 50
+2025-12-04 09:13:31,519 - __main__ - INFO - Tuning XGBoost model...
+Traceback (most recent call last):
+  File "C:\Users\samue\Desktop\NSP\healthcare-appointments\scripts\run_tuning.py", line 75, in <module>
+    main()
+  File "C:\Users\samue\Desktop\NSP\healthcare-appointments\scripts\run_tuning.py", line 66, in main
+    tuner.tune('xgboost', X_train_transformed, y_train)
+    ^^^^^^^^^^
+AttributeError: 'HyperparameterTuner' object has no attribute 'tune'

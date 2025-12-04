@@ -250,7 +250,7 @@ class FeatureEngineer:
         
         if appt_col:
             df = df.sort_values(['patientid', appt_col])
-        
+            
         # Calculate cumulative statistics per patient
         df['patient_total_appointments'] = df.groupby('patientid').cumcount() + 1
         df['patient_previous_noshows'] = df.groupby('patientid')['no_show'].cumsum() - df['no_show']
@@ -270,6 +270,35 @@ class FeatureEngineer:
         if appt_col:
             df['days_since_last_appointment'] = df.groupby('patientid')[appt_col].diff().dt.days
             df['days_since_last_appointment'] = df['days_since_last_appointment'].fillna(-1)  # -1 for first appointment
+
+        # Calculate days since last no-show
+        # Create a mask for no-show appointments
+        noshow_mask = df['no_show'] == 1
+        
+        # Create a series with dates only where there was a no-show
+        if appt_col:
+            df['noshow_date'] = pd.NaT
+            df.loc[noshow_mask, 'noshow_date'] = df.loc[noshow_mask, appt_col]
+            
+            # Forward fill the no-show dates per patient to propagate the last no-show date
+            # We shift by 1 to ensure we are looking at *past* no-shows, not the current one
+            df['last_noshow_date'] = df.groupby('patientid')['noshow_date'].transform(lambda x: x.ffill().shift())
+            
+            # Ensure datetime types
+            df[appt_col] = pd.to_datetime(df[appt_col])
+            df['last_noshow_date'] = pd.to_datetime(df['last_noshow_date'])
+
+            # Calculate days since last no-show
+            df['days_since_last_noshow'] = (df[appt_col] - df['last_noshow_date']).dt.days
+            
+            # Fill NaNs (patients with no history of no-shows) with a large number or -1
+            # Using -1 to indicate "never" or "no history"
+            df['days_since_last_noshow'] = df['days_since_last_noshow'].fillna(-1)
+            
+            # Clean up temporary columns
+            df.drop(columns=['noshow_date', 'last_noshow_date'], inplace=True)
+            
+            self.features_created.append('days_since_last_noshow')
         
         history_features = [
             'patient_total_appointments', 'patient_previous_noshows',
@@ -283,7 +312,7 @@ class FeatureEngineer:
         self.logger.info(f"Created {len(history_features)} patient history features")
         
         return df
-    
+
     def create_health_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Create features related to health conditions.
