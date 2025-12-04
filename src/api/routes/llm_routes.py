@@ -23,7 +23,7 @@ from ..cache import cache_response
 # LLM imports
 from src.llm.chains import RiskExplanationChain, InterventionChain
 from src.llm.chains.orchestrator import HealthcareOrchestrator, IntentType
-from src.llm.agents import HealthcareAgent, create_healthcare_agent
+from src.llm.agents import HealthcareAgent, create_healthcare_agent, generate_smart_fill
 from src.llm.tracing import get_metrics
 from src.llm.memory.conversation_memory import get_memory_manager
 from src.llm.config import get_llm_config
@@ -155,6 +155,36 @@ async def chat(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+
+@router.post(
+    "/smart-fill",
+    summary="Generate Smart Fill Data",
+    description="Generate AI-powered sample patient data for the prediction form"
+)
+async def smart_fill(
+    scenario: str = Body("high", description="Risk scenario: high, medium, low, or random")
+) -> Dict[str, Any]:
+    """
+    Generate sample patient data based on risk scenario.
+    
+    Scenarios:
+    - high: High-risk patient profile (elderly, multiple conditions, long lead time)
+    - medium: Moderate risk profile
+    - low: Low-risk patient profile
+    - random: Random profile for testing
+    """
+    try:
+        data = generate_smart_fill(scenario)
+        return {
+            "scenario": scenario,
+            "data": data,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Smart fill error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post(
     "/agent",

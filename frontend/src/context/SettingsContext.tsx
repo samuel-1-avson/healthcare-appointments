@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getSettings, updateSettings as updateSettingsApi } from '../services/api';
 
 interface Settings {
     costPerNoShow: number;
@@ -12,15 +13,16 @@ interface Settings {
 
 interface SettingsContextType {
     settings: Settings;
-    updateSettings: (newSettings: Partial<Settings>) => void;
+    updateSettings: (newSettings: Partial<Settings>) => Promise<void>;
     resetSettings: () => void;
+    isLoading: boolean;
 }
 
 const defaultSettings: Settings = {
-    costPerNoShow: 200,
+    costPerNoShow: 50,
     riskThresholds: {
-        high: 0.7,
-        medium: 0.4,
+        high: 0.8,
+        medium: 0.5,
     },
     theme: 'dark',
     notificationsEnabled: true,
@@ -29,31 +31,87 @@ const defaultSettings: Settings = {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [settings, setSettings] = useState<Settings>(() => {
-        const saved = localStorage.getItem('nsp_settings');
-        return saved ? JSON.parse(saved) : defaultSettings;
-    });
+    const [settings, setSettings] = useState<Settings>(defaultSettings);
+    const [isLoading, setIsLoading] = useState(true);
 
+    // Fetch settings from API
     useEffect(() => {
-        localStorage.setItem('nsp_settings', JSON.stringify(settings));
-        // Apply theme
+        const fetchSettings = async () => {
+            try {
+                const data = await getSettings();
+                // Map backend snake_case to frontend camelCase
+                setSettings({
+                    costPerNoShow: data.cost_per_no_show,
+                    riskThresholds: {
+                        high: data.risk_threshold_high,
+                        medium: data.risk_threshold_medium
+                    },
+                    theme: data.theme as 'dark' | 'light',
+                    notificationsEnabled: data.notifications_enabled
+                });
+            } catch (error) {
+                console.error("Failed to fetch settings, using defaults", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchSettings();
+    }, []);
+
+    // Apply theme side-effect
+    useEffect(() => {
         if (settings.theme === 'dark') {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
-    }, [settings]);
+    }, [settings.theme]);
 
-    const updateSettings = (newSettings: Partial<Settings>) => {
-        setSettings(prev => ({ ...prev, ...newSettings }));
+    const updateSettings = async (newSettings: Partial<Settings>) => {
+        // Optimistic update
+        const updated = { ...settings, ...newSettings };
+
+        // Handle nested updates for riskThresholds
+        if (newSettings.riskThresholds) {
+            updated.riskThresholds = { ...settings.riskThresholds, ...newSettings.riskThresholds };
+        }
+
+        setSettings(updated);
+
+        // Sync with backend
+        try {
+            const backendPayload = {
+                cost_per_no_show: updated.costPerNoShow,
+                risk_threshold_high: updated.riskThresholds.high,
+                risk_threshold_medium: updated.riskThresholds.medium,
+                notifications_enabled: updated.notificationsEnabled,
+                theme: updated.theme
+            };
+            await updateSettingsApi(backendPayload);
+        } catch (error) {
+            console.error("Failed to save settings", error);
+            // Revert on error? For now, just log.
+        }
     };
 
-    const resetSettings = () => {
+    const resetSettings = async () => {
         setSettings(defaultSettings);
+        try {
+            const backendPayload = {
+                cost_per_no_show: defaultSettings.costPerNoShow,
+                risk_threshold_high: defaultSettings.riskThresholds.high,
+                risk_threshold_medium: defaultSettings.riskThresholds.medium,
+                notifications_enabled: defaultSettings.notificationsEnabled,
+                theme: defaultSettings.theme
+            };
+            await updateSettingsApi(backendPayload);
+        } catch (error) {
+            console.error("Failed to reset settings", error);
+        }
     };
 
     return (
-        <SettingsContext.Provider value={{ settings, updateSettings, resetSettings }}>
+        <SettingsContext.Provider value={{ settings, updateSettings, resetSettings, isLoading }}>
             {children}
         </SettingsContext.Provider>
     );

@@ -724,6 +724,28 @@ This document provides a detailed explanation of the function and purpose of eac
 - `POST /api/v1/compliance/data-access`: Log data access
 - `GET /api/v1/compliance/reports`: Generate compliance reports
 
+#### `src/api/routes/settings.py`
+**Purpose**: Application configuration endpoints.
+
+**Key Endpoints**:
+- `GET /api/v1/settings/`: Retrieve current application settings
+- `PUT /api/v1/settings/`: Update application settings
+
+**Key Functions**:
+- Manages global settings (risk thresholds, costs, theme)
+- Persists configuration to database
+
+#### `src/api/routes/users.py`
+**Purpose**: User profile and activity endpoints.
+
+**Key Endpoints**:
+- `GET /api/v1/users/profile`: Get current user profile with stats
+- `PUT /api/v1/users/profile`: Update user profile
+
+**Key Functions**:
+- Aggregates user statistics (predictions, alerts)
+- Retrieves user activity logs from audit trail
+
 ### Security (`src/api/security/`)
 
 Contains advanced security implementations including encryption, audit logging, and security utilities.

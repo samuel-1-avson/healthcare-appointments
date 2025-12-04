@@ -112,3 +112,18 @@ class PatientConsent(Base):
     granted = Column(Boolean, default=False)
     timestamp = Column(DateTime, server_default=func.now())
     expires_at = Column(DateTime, nullable=True)
+
+
+class Settings(Base):
+    """Application settings."""
+    __tablename__ = "settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True, nullable=True) # Optional: if we want per-user settings later
+    cost_per_no_show = Column(Float, default=50.0)
+    risk_threshold_high = Column(Float, default=0.8)
+    risk_threshold_medium = Column(Float, default=0.5)
+    notifications_enabled = Column(Boolean, default=True)
+    theme = Column(String, default="dark")
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+

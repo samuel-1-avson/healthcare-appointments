@@ -10,10 +10,12 @@ Agents for autonomous healthcare assistant tasks:
 
 from .healthcare_agent import (
     HealthcareAgent,
-    create_healthcare_agent
+    create_healthcare_agent,
+    generate_smart_fill
 )
 
 __all__ = [
     "HealthcareAgent",
-    "create_healthcare_agent"
+    "create_healthcare_agent",
+    "generate_smart_fill"
 ]

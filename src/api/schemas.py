@@ -424,6 +424,47 @@ class APIInfo(BaseModel):
     endpoints: List[Dict[str, str]]
 
 
+    endpoints: List[Dict[str, str]]
+
+
+class SettingsSchema(BaseModel):
+    """Settings schema."""
+    cost_per_no_show: float = Field(default=50.0, ge=0)
+    risk_threshold_high: float = Field(default=0.8, ge=0, le=1)
+    risk_threshold_medium: float = Field(default=0.5, ge=0, le=1)
+    notifications_enabled: bool = Field(default=True)
+    theme: str = Field(default="dark")
+
+    class Config:
+        from_attributes = True
+
+
+class UserStats(BaseModel):
+    """User statistics."""
+    predictions: int
+    alerts_resolved: int
+    uptime: str
+
+
+class UserActivity(BaseModel):
+    """User activity log item."""
+    action: str
+    time: str
+    icon: str
+
+
+class UserProfile(BaseModel):
+    """User profile information."""
+    name: str
+    role: str
+    email: str
+    location: str
+    join_date: str
+    avatar: str
+    stats: UserStats
+    activities: List[UserActivity]
+
+
 # ==================== ERROR SCHEMAS ====================
 
 class ErrorDetail(BaseModel):

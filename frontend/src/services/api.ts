@@ -20,8 +20,15 @@ export const batchPredict = async (data: { appointments: AppointmentFeatures[] }
     return response.data;
 };
 
-export const chatWithAssistant = async (data: { message: string; session_id?: string }) => {
+export const chatWithAssistant = async (data: { message: string; session_id?: string; context?: any }) => {
     const response = await api.post('/api/v1/llm/chat', data);
+    return response.data;
+};
+
+export const getSmartFill = async (scenario: string = 'high') => {
+    const response = await api.post('/api/v1/llm/smart-fill', scenario, {
+        headers: { 'Content-Type': 'application/json' }
+    });
     return response.data;
 };
 
@@ -37,6 +44,21 @@ export const getModelMetrics = async () => {
 
 export const getPredictionHistory = async () => {
     const response = await api.get('/api/v1/model/history');
+    return response.data;
+};
+
+export const getSettings = async () => {
+    const response = await api.get('/api/v1/settings/');
+    return response.data;
+};
+
+export const updateSettings = async (settings: any) => {
+    const response = await api.put('/api/v1/settings/', settings);
+    return response.data;
+};
+
+export const getUserProfile = async () => {
+    const response = await api.get('/api/v1/users/profile');
     return response.data;
 };
 

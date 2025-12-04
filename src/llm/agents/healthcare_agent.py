@@ -26,6 +26,8 @@ from langchain.agents.output_parsers.tools import ToolsAgentOutputParser
 
 from ..langchain_config import get_chat_model
 from ..tools.prediction_tool import PredictionTool, create_batch_prediction_tool
+from ..tools.explanation_tool import ExplanationTool
+from ..tools.policy_tool import PolicySearchTool
 from ..memory.conversation_memory import get_memory_manager, InMemoryHistory
 
 
@@ -41,6 +43,8 @@ HEALTHCARE_AGENT_PROMPT = """You are a Healthcare Appointment Assistant, an AI a
 You have access to these tools:
 1. **predict_noshow**: Get a no-show risk prediction for a patient appointment
 2. **batch_predict_noshows**: Get predictions for multiple appointments at once
+3. **explain_prediction**: Generate detailed explanations for prediction results
+4. **search_policies**: Search healthcare appointment policies and guidelines
 
 ## When to Use Tools
 
@@ -49,26 +53,49 @@ USE the predict_noshow tool when:
 - User provides patient details (age, appointment date, etc.)
 - User wants to know if intervention is needed
 
+USE the explain_prediction tool when:
+- You have made a prediction and need to explain it in detail
+- User asks "why" about a risk level
+- User wants to understand contributing factors
+
+USE the search_policies tool when:
+- User asks about cancellation policies
+- User asks about no-show consequences  
+- User asks about reminder systems or scheduling rules
+
 DO NOT use tools when:
-- User asks general questions about no-shows
-- User asks about policies or best practices
-- User wants explanations of past predictions
+- User asks general questions you can answer from knowledge
+- User is just making conversation
+- The same question was already answered
+
+## Context Awareness
+
+{prediction_context}
+
+When the user has a recent prediction context:
+- Reference the specific risk level and probability
+- Explain factors contributing to that specific case
+- Provide targeted intervention recommendations
 
 ## Response Guidelines
 
 1. When making predictions:
    - Call the tool with the provided information
    - Explain the results in plain language
-   - Provide specific recommendations
+   - Provide specific, actionable recommendations
 
 2. When explaining concepts:
    - Be clear and educational
    - Use examples when helpful
    - Avoid medical jargon
 
-3. Always:
+3. For Smart Fill requests (generating sample patient data):
+   - Generate realistic patient profiles based on requested risk level
+   - Return data as JSON with fields: age, gender, lead_days, sms_received, scholarship, hypertension, diabetes, alcoholism, handicap
+
+4. Always:
    - Be empathetic and patient-focused
-   - Acknowledge uncertainty
+   - Acknowledge uncertainty when present
    - Recommend human review for critical decisions
 
 ## Current Context
@@ -170,7 +197,9 @@ class HealthcareAgent:
         """Get default tools for the agent."""
         return [
             PredictionTool(),
-            create_batch_prediction_tool()
+            create_batch_prediction_tool(),
+            ExplanationTool(),
+            PolicySearchTool()
         ]
     
     def _build_agent(self) -> AgentExecutor:
@@ -256,11 +285,27 @@ class HealthcareAgent:
         # Get chat history
         history = self.memory_manager.get_conversation_messages(session_id)
         
+        # Build prediction context string
+        prediction_context = kwargs.get("prediction_context")
+        context_str = ""
+        if prediction_context:
+            risk = prediction_context.get("risk", {})
+            prob = prediction_context.get("probability", 0)
+            context_str = f"""The user just made a prediction with these results:
+- Risk Level: {risk.get('tier', 'UNKNOWN')}
+- Probability: {prob:.0%}
+- Confidence: {risk.get('confidence', 'Unknown')}
+
+Patient details from prediction:
+{prediction_context.get('patient_data', {})}
+"""
+        
         # Prepare input
         agent_input = {
             "input": message,
             "chat_history": history,
-            "current_date": datetime.now().strftime("%Y-%m-%d")
+            "current_date": datetime.now().strftime("%Y-%m-%d"),
+            "prediction_context": context_str or "No recent prediction context."
         }
         
         # Invoke agent
@@ -368,6 +413,7 @@ class HealthcareAgent:
 def create_healthcare_agent(
     model_name: Optional[str] = None,
     include_batch_tool: bool = True,
+    include_all_tools: bool = True,
     verbose: bool = False
 ) -> HealthcareAgent:
     """
@@ -379,6 +425,8 @@ def create_healthcare_agent(
         LLM model to use
     include_batch_tool : bool
         Include batch prediction tool
+    include_all_tools : bool
+        Include explanation and policy tools (default True)
     verbose : bool
         Enable verbose mode
     
@@ -392,8 +440,79 @@ def create_healthcare_agent(
     if include_batch_tool:
         tools.append(create_batch_prediction_tool())
     
+    if include_all_tools:
+        tools.append(ExplanationTool())
+        tools.append(PolicySearchTool())
+    
     return HealthcareAgent(
         model_name=model_name,
         tools=tools,
         verbose=verbose
     )
+
+
+def generate_smart_fill(scenario: str = "high") -> Dict[str, Any]:
+    """
+    Generate AI-powered smart fill data for the prediction form.
+    
+    Parameters
+    ----------
+    scenario : str
+        Risk scenario: 'high', 'medium', 'low', or 'random'
+    
+    Returns
+    -------
+    dict
+        Patient data matching the AppointmentFeatures schema
+    """
+    import random
+    
+    # Base scenarios with typical values
+    scenarios = {
+        "high": {
+            "age": random.randint(55, 85),
+            "gender": random.choice(["M", "F"]),
+            "scholarship": 1,
+            "hypertension": 1,
+            "diabetes": 1,
+            "alcoholism": random.choice([0, 1]),
+            "handicap": random.randint(0, 2),
+            "sms_received": 0,
+            "lead_days": random.randint(14, 45)
+        },
+        "medium": {
+            "age": random.randint(35, 55),
+            "gender": random.choice(["M", "F"]),
+            "scholarship": random.choice([0, 1]),
+            "hypertension": random.choice([0, 1]),
+            "diabetes": 0,
+            "alcoholism": 0,
+            "handicap": 0,
+            "sms_received": random.choice([0, 1]),
+            "lead_days": random.randint(7, 21)
+        },
+        "low": {
+            "age": random.randint(25, 45),
+            "gender": random.choice(["M", "F"]),
+            "scholarship": 0,
+            "hypertension": 0,
+            "diabetes": 0,
+            "alcoholism": 0,
+            "handicap": 0,
+            "sms_received": 1,
+            "lead_days": random.randint(1, 7)
+        },
+        "random": {
+            "age": random.randint(18, 90),
+            "gender": random.choice(["M", "F"]),
+            "scholarship": random.choice([0, 1]),
+            "hypertension": random.choice([0, 1]),
+            "diabetes": random.choice([0, 1]),
+            "alcoholism": random.choice([0, 1]),
+            "handicap": random.randint(0, 4),
+            "sms_received": random.choice([0, 1]),
+            "lead_days": random.randint(0, 60)
+        }
+    }
+    
+    return scenarios.get(scenario.lower(), scenarios["random"])

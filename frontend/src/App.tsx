@@ -7,6 +7,7 @@ import BatchUpload from './components/BatchUpload';
 import ChatAssistant from './components/ChatAssistant';
 import Settings from './components/Settings';
 import PatientList from './components/PatientList';
+import UserProfile from './components/UserProfile';
 import { SettingsProvider } from './context/SettingsContext';
 import { predictNoShow } from './services/api';
 import type { AppointmentFeatures } from './types';
@@ -54,6 +55,7 @@ function App() {
             <Route path="/patients" element={<PatientList />} />
             <Route path="/chat" element={<ChatAssistant />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/profile" element={<UserProfile />} />
           </Routes>
         </Layout>
       </Router>

@@ -64,6 +64,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
             logger.warning("Model not loaded - predictions will fail")
     except Exception as e:
         logger.error(f"Failed to load model: {e}")
+
+    # Initialize Database
+    try:
+        from .database import init_db
+        init_db()
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
     
     logger.info("=" * 50)
     logger.info("API Ready!")
@@ -199,6 +206,11 @@ def create_app() -> FastAPI:
     # Include routers
     app.include_router(api_router, prefix=settings.api_prefix)
     app.include_router(auth_router, prefix=settings.api_prefix)
+    
+    from .routes.settings import router as settings_router
+    from .routes.users import router as users_router
+    app.include_router(settings_router, prefix=settings.api_prefix)
+    app.include_router(users_router, prefix=settings.api_prefix)
     
     # Include health router at root for monitoring
     from .routes.health import router as health_router

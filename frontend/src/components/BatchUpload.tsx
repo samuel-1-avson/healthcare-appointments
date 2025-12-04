@@ -6,6 +6,88 @@ import Papa from 'papaparse';
 import { batchPredict } from '../services/api';
 import type { AppointmentFeatures, PredictionResponse } from '../types';
 
+// Helper to normalize column names (handle both raw Kaggle format and processed format)
+const normalizeColumnName = (name: string): string => {
+    const mapping: Record<string, string> = {
+        'Age': 'age',
+        'Gender': 'gender',
+        'Scholarship': 'scholarship',
+        'Hipertension': 'hypertension',
+        'Hypertension': 'hypertension',
+        'Diabetes': 'diabetes',
+        'Alcoholism': 'alcoholism',
+        'Handcap': 'handicap',
+        'Handicap': 'handicap',
+        'SMS_received': 'sms_received',
+        'Neighbourhood': 'neighbourhood',
+        'No-show': 'no_show',
+        'PatientId': 'patient_id',
+        'AppointmentID': 'appointment_id',
+        'ScheduledDay': 'scheduled_day',
+        'AppointmentDay': 'appointment_day',
+    };
+    return mapping[name] || name.toLowerCase().replace(/-/g, '_');
+};
+
+// Normalize gender to API-expected values
+const normalizeGender = (value: any): 'M' | 'F' | 'O' => {
+    if (!value) return 'O';
+    const v = String(value).toUpperCase().trim();
+    if (v === 'M' || v === 'MALE' || v === 'MAN') return 'M';
+    if (v === 'F' || v === 'FEMALE' || v === 'WOMAN') return 'F';
+    return 'O';
+};
+
+// Transform raw CSV data to the expected format
+const transformAppointmentData = (rawData: any[]): AppointmentFeatures[] => {
+    return rawData.map((row) => {
+        // Create normalized row
+        const normalized: any = {};
+        for (const key of Object.keys(row)) {
+            normalized[normalizeColumnName(key)] = row[key];
+        }
+
+        // Calculate lead_days if we have scheduled_day and appointment_day
+        let lead_days = normalized.lead_days;
+        if (lead_days === undefined && normalized.scheduled_day && normalized.appointment_day) {
+            const scheduledDate = new Date(normalized.scheduled_day);
+            const appointmentDate = new Date(normalized.appointment_day);
+            lead_days = Math.round((appointmentDate.getTime() - scheduledDate.getTime()) / (1000 * 60 * 60 * 24));
+            if (lead_days < 0) lead_days = 0;
+        }
+
+        // Extract weekday from appointment_day if not present
+        let appointment_weekday = normalized.appointment_weekday;
+        if (!appointment_weekday && normalized.appointment_day) {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            appointment_weekday = days[new Date(normalized.appointment_day).getDay()];
+        }
+
+        // Build the appointment object with properly typed values
+        const appointment: AppointmentFeatures = {
+            age: Math.max(0, Math.min(120, Number(normalized.age) || 0)),
+            gender: normalizeGender(normalized.gender),
+            scholarship: Number(normalized.scholarship) || 0,
+            hypertension: Number(normalized.hypertension) || 0,
+            diabetes: Number(normalized.diabetes) || 0,
+            alcoholism: Number(normalized.alcoholism) || 0,
+            handicap: Number(normalized.handicap) || 0,
+            sms_received: Number(normalized.sms_received) || 0,
+            lead_days: Math.max(0, Math.min(365, Number(lead_days) || 0)),
+        };
+
+        // Add optional fields only if they have meaningful values
+        if (normalized.neighbourhood && normalized.neighbourhood.trim()) {
+            appointment.neighbourhood = String(normalized.neighbourhood).trim();
+        }
+        if (appointment_weekday) {
+            appointment.appointment_weekday = String(appointment_weekday);
+        }
+
+        return appointment;
+    });
+};
+
 const BatchUpload = () => {
     const [files, setFiles] = useState<File[]>([]);
     const [uploading, setUploading] = useState(false);
@@ -45,14 +127,43 @@ const BatchUpload = () => {
             skipEmptyLines: true,
             complete: async (results) => {
                 try {
-                    setProgress(50); // Parsed
-                    const appointments = results.data as AppointmentFeatures[];
-                    console.log('Parsed appointments:', appointments);
+                    setProgress(30); // Parsed
+                    const rawData = results.data as any[];
+                    console.log('Parsed raw data:', rawData.slice(0, 3));
 
-                    // Basic validation to ensure required fields exist
-                    if (!appointments.length || appointments[0].age === undefined || appointments[0].lead_days === undefined) {
-                        throw new Error("Invalid CSV format. Please ensure headers match required fields (age, gender, lead_days, etc.)");
+                    if (!rawData.length) {
+                        throw new Error("CSV file is empty or could not be parsed.");
                     }
+
+                    // Check for required columns (either raw or processed format)
+                    const firstRow = rawData[0];
+                    const keys = Object.keys(firstRow).map(k => k.toLowerCase());
+                    const hasAge = keys.includes('age');
+                    const hasLeadDays = keys.includes('lead_days');
+                    const hasScheduledDay = keys.some(k => k.includes('scheduled'));
+                    const hasAppointmentDay = keys.some(k => k.includes('appointment') && k.includes('day'));
+
+                    if (!hasAge) {
+                        throw new Error("CSV must contain an 'Age' column.");
+                    }
+
+                    if (!hasLeadDays && !(hasScheduledDay && hasAppointmentDay)) {
+                        throw new Error("CSV must contain either 'lead_days' or both 'ScheduledDay' and 'AppointmentDay' columns.");
+                    }
+
+                    setProgress(50); // Validated
+
+                    // Transform and normalize the data
+                    let appointments = transformAppointmentData(rawData);
+                    console.log('Transformed appointments:', appointments.slice(0, 3));
+
+                    // API has a limit of 1000 appointments per batch
+                    if (appointments.length > 1000) {
+                        console.log(`Limiting batch from ${appointments.length} to 1000 appointments`);
+                        appointments = appointments.slice(0, 1000);
+                    }
+
+                    setProgress(60); // Transformed
 
                     const response = await batchPredict({ appointments });
                     setResults(response.predictions);
@@ -60,7 +171,26 @@ const BatchUpload = () => {
                     setCompleted(true);
                 } catch (err: any) {
                     console.error("Batch prediction failed", err);
-                    setError(err.message || "Failed to process batch predictions");
+                    // Extract detailed error message from API response
+                    let errorMessage = "Failed to process batch predictions";
+                    if (err.response?.data) {
+                        console.error("API Error Response:", err.response.data);
+                        if (err.response.data.detail) {
+                            // FastAPI validation error format
+                            if (Array.isArray(err.response.data.detail)) {
+                                errorMessage = err.response.data.detail
+                                    .map((e: any) => `${e.loc?.join('.')}: ${e.msg}`)
+                                    .join('; ');
+                            } else {
+                                errorMessage = err.response.data.detail;
+                            }
+                        } else if (err.response.data.message) {
+                            errorMessage = err.response.data.message;
+                        }
+                    } else if (err.message) {
+                        errorMessage = err.message;
+                    }
+                    setError(errorMessage);
                     setProgress(0);
                 } finally {
                     setUploading(false);
