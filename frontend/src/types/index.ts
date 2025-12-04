@@ -35,12 +35,25 @@ export interface InterventionRecommendation {
     notes?: string;
 }
 
+export interface FeatureContribution {
+    feature: string;
+    value: number | string;
+    contribution: number;
+    direction: 'positive' | 'negative';
+}
+
+export interface PredictionExplanation {
+    top_risk_factors: FeatureContribution[];
+    top_protective_factors: FeatureContribution[];
+    summary: string;
+}
+
 export interface PredictionResponse {
     prediction: number;
     probability: number;
     risk: RiskInfo;
     intervention: InterventionRecommendation;
-    explanation?: any;
+    explanation?: PredictionExplanation;
     model_version?: string;
     prediction_id?: string;
     timestamp?: string;

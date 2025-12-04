@@ -36,6 +36,37 @@ def get_fernet() -> Fernet:
     return _fernet
 
 
+class Encryptor:
+    """Helper for manual encryption/decryption."""
+    
+    @staticmethod
+    def encrypt(value: str) -> Optional[str]:
+        """Encrypt a string value."""
+        if value is None:
+            return None
+        try:
+            fernet = get_fernet()
+            encrypted = fernet.encrypt(str(value).encode())
+            return base64.urlsafe_b64encode(encrypted).decode()
+        except Exception as e:
+            logger.error(f"Encryption failed: {e}")
+            return None
+
+    @staticmethod
+    def decrypt(value: str) -> Optional[str]:
+        """Decrypt a string value."""
+        if value is None:
+            return None
+        try:
+            fernet = get_fernet()
+            decoded = base64.urlsafe_b64decode(value.encode())
+            decrypted = fernet.decrypt(decoded)
+            return decrypted.decode()
+        except Exception as e:
+            logger.error(f"Decryption failed: {e}")
+            return None
+
+
 class EncryptedString(TypeDecorator):
     """
     SQLAlchemy type for encrypted string storage.

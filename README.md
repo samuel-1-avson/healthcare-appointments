@@ -23,22 +23,6 @@
 The **Healthcare No-Show Prediction System** is a comprehensive ML platform designed to predict patient appointment no-shows and provide actionable intervention recommendations. The system combines traditional machine learning with modern LLM capabilities to deliver:
 - **Predictive Analytics**: Real-time risk assessment for individual and batch appointments
 - **Explainable AI**: Human-readable explanations for every prediction
-- **Intelligent Interventions**: Context-aware recommendations for reducing no-shows
-- **Conversational Interface**: RAG-powered AI assistant for policy questions and insights
-
-### Key Capabilities
-| Feature | Description | Technology |
-|---------|-------------|------------|
-| **Real-time Predictions** | Sub-100ms prediction latency | FastAPI + scikit-learn |
-| **Batch Processing** | Process 1000s of appointments asynchronously | Celery + RabbitMQ |
-| **AI Explanations** | Natural language explanations for predictions | LangChain + GPT-4 |
-| **RAG Q&A** | Semantic search over clinic policies | FAISS + OpenAI Embeddings |
-| **Risk Tiers** | 5-tier classification (CRITICAL → MINIMAL) | Custom risk scoring |
-| **Observability** | Real-time metrics & monitoring | Prometheus + Grafana |
-
----
-
-## 2. Architecture Deep Dive
 
 ### High-Level Architecture
 
@@ -53,21 +37,6 @@ graph TB
     end
 
     subgraph "Application Layer"
-        API1[FastAPI Instance 1]
-        API2[FastAPI Instance 2]
-        API3[FastAPI Instance 3]
-        WORKER[Celery Worker<br/>Async Tasks]
-    end
-
-    subgraph "AI/ML Layer"
-        MODEL[ML Model<br/>RandomForest/XGBoost]
-        LLM[LLM Client<br/>OpenAI/Anthropic]
-        RAG[RAG Pipeline<br/>FAISS Vector Store]
-    end
-
-    subgraph "Data Layer"
-        POSTGRES[(PostgreSQL<br/>Patient Data)]
-        REDIS[(Redis Cache<br/>Sessions/Results)]
         RABBITMQ[RabbitMQ<br/>Task Queue]
         VECTOR[(Vector Store<br/>Embeddings)]
     end
@@ -124,20 +93,6 @@ graph TB
   - Report generation
   - Email/SMS notifications
 
-#### 4. Database Services
-- **PostgreSQL**: Stores appointment records, user data, audit logs
-- **Redis**: Caches prediction results, LLM sessions, rate limiting
-- **RabbitMQ**: Message broker for task distribution
-
-#### 5. AI/ML Services
-- **ML Model**: Scikit-learn pipeline (production/model.joblib)
-- **LLM API**: OpenAI GPT-4o-mini / Anthropic Claude
-- **Vector Store**: FAISS for document embeddings
-
----
-
-## 3. Data Flow & Request Lifecycle
-
 ### Single Prediction Flow
 
 ```mermaid
@@ -154,28 +109,6 @@ sequenceDiagram
     User->>Frontend: Fill prediction form
     Frontend->>Frontend: Validate inputs (age, gender, etc.)
     Frontend->>Nginx: POST /api/v1/predict
-    Nginx->>API: Route to healthy instance
-    
-    API->>Redis: Check cache (patient_id + features hash)
-    alt Cache Hit
-        Redis-->>API: Return cached result
-        API-->>Frontend: PredictionResponse (cached)
-    else Cache Miss
-        API->>Model: Prepare features (30 dims)
-        Model->>Model: Preprocess (scale, encode)
-        Model->>Model: predict_proba()
-        Model-->>API: probability [0.0-1.0]
-        API->>API: Calculate risk tier
-        API->>LLM: Generate explanation (optional)
-        LLM-->>API: Human-readable text
-        API->>Redis: Cache result (TTL: 1h)
-        API->>DB: Log prediction (audit)
-        API-->>Frontend: PredictionResponse + Explanation
-    end
-    
-    Frontend->>Frontend: Render result card
-    Frontend->>User: Display risk + interventions
-```
 
 ### Chat/RAG Flow
 
@@ -392,36 +325,6 @@ App.tsx (Root)
   "neighbourhood": "JARDIM CAMBURI",
   "prev_noshow_rate": 0.2,
   "avg_lead_time": 10.5
-}
-```
-
-**Response:**
-```json
-{
-  "probability": 0.34,
-  "prediction": "SHOW",
-  "risk_assessment": {
-    "tier": "MEDIUM",
-    "probability": 0.34,
-    "color": "#f1c40f",
-    "intervention": "Double SMS reminder",
-    "emoji": "🟡"
-  },
-  "intervention": {
-    "primary_action": "Send automated SMS 24h before appointment",
-    "secondary_action": "Follow-up call if no confirmation",
-    "timeline": "1-2 days before appointment"
-  },
-  "metadata": {
-    "model_version": "1.0.0",
-    "timestamp": "2025-12-03T13:55:00Z",
-    "latency_ms": 45
-  }
-}
-```
-
-#### POST `/api/v1/llm/chat`
-
 **Request:**
 ```json
 {
@@ -516,20 +419,6 @@ healthcare-appointments/
 │   │       └── regression.py        # Test suite
 │   │
 │   ├── ml/                          # ML Pipeline (future refactor)
-│   ├── data_cleaner.py              # Data preprocessing
-│   ├── feature_engineer.py          # Feature transformations
-│   └── utils.py                     # Utilities
-│
-├── models/                          # Saved ML Artifacts
-│   ├── production/
-│   │   ├── model.joblib             # Trained model (RandomForest)
-│   │   ├── preprocessor.joblib      # ColumnTransformer
-│   │   └── model_metadata.json      # Version, metrics, features
-│   ├── baseline/                    # Initial models
-│   └── tuned/                       # Hyperparameter tuned
-│
-├── notebooks/                       # Jupyter Notebooks
-│   ├── healthcare_appointments_eda.ipynb       # Week 1: EDA
 │   ├── week5_baseline_models.ipynb             # Week 5: ML baselines
 │   ├── week6_tuning_interpretability.ipynb     # Week 6: Tuning + SHAP
 │   ├── week7_deployment.ipynb                  # Week 7: FastAPI

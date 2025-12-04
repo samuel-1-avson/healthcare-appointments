@@ -41,7 +41,7 @@ tiktoken>=0.5.0,<1.0.0
 
 # RAG Evaluation
 # ragas>=0.1.4  # Install separately if needed
-datasets>=2.14.0,<5.0.0
+datasets>=4.0.0
 
 # Utilities (Required)
 python-dotenv>=1.0.0

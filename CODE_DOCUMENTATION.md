@@ -360,27 +360,26 @@ This document provides a detailed explanation of the function and purpose of eac
 - `UserCreate`, `UserLogin`: Authentication schemas
 
 #### `src/api/predict.py`
-**Purpose**: Core prediction logic and model inference.
+**Purpose**: Core prediction logic and model inference engine.
 
 **Key Functions**:
-- Loads trained ML models from disk
-- Preprocesses input data for prediction
-- Executes model inference
-- Formats prediction results
+- Loads trained ML models (XGBoost) and SHAP explainers
+- Preprocesses input data using saved ColumnTransformer
+- Executes model inference to get probabilities
+- Generates SHAP-based explanations for predictions
+- Formats prediction results with risk tiers and interventions
 - Handles prediction errors gracefully
 - Implements model versioning support
 - Caches predictions for repeated requests
 
 **Key Classes**:
-- `ModelPredictor`: Main prediction orchestrator
-  - `load_model()`: Loads model from artifacts
-  - `preprocess_input()`: Transforms input data
-  - `predict()`: Executes model inference
-  - `format_output()`: Structures prediction results
+- `NoShowPredictor`: Main prediction orchestrator (Singleton)
+  - `load_model()`: Loads model, preprocessor, and SHAP explainer
+  - `predict()`: Executes model inference and generates explanation
+  - `_generate_explanation()`: Calculates SHAP values and identifies top risk/protective factors
+  - `_prepare_features()`: Prepares features matching model expectations
 
 **Key Functions**:
-- `_prepare_features()`: Prepares features matching model expectations
-- `_transform_features()`: Applies preprocessing transformations
 - `make_prediction()`: Main prediction endpoint function
 
 ### Authentication & Security
@@ -732,6 +731,18 @@ Contains custom middleware for request processing, logging, and security.
 - `train_xgboost()`: Trains XGBoost model
 - `train_lightgbm()`: Trains LightGBM model
 - `cross_validate_model()`: Performs k-fold cross-validation
+
+#### `src/ml/train_best_model.py`
+**Purpose**: Production training script using optimized XGBoost hyperparameters.
+
+**Key Functions**:
+- Loads and cleans the full dataset
+- Trains XGBoost classifier with Week 6 optimized parameters
+- Optimizes decision threshold for F2-score (recall priority)
+- Generates and saves SHAP TreeExplainer for interpretability
+- Saves all production artifacts (model, preprocessor, explainer, metadata)
+- Calculates and saves feature importance
+
 
 #### `src/ml/evaluate.py`
 **Purpose**: Model evaluation and performance metrics.
@@ -1133,7 +1144,9 @@ Contains production-ready LLM components:
 
 **Key Types**:
 - `PredictionRequest`: Structure for prediction requests
-- `PredictionResponse`: Structure for prediction responses
+- `PredictionResponse`: Structure for prediction responses (includes explanation)
+- `PredictionExplanation`: SHAP-based explanation structure
+- `FeatureContribution`: Individual feature contribution details
 - `ModelMetrics`: Model performance metrics
 - `ChatMessage`: Chat message structure
 - `User`: User profile structure

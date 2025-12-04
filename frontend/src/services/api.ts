@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { AppointmentFeatures, PredictionResponse } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8002';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
     baseURL: API_URL,
@@ -26,12 +26,17 @@ export const chatWithAssistant = async (data: { message: string; session_id?: st
 };
 
 export const getModelInfo = async () => {
-    const response = await api.get('/api/v1/model/info');
+    const response = await api.get('/api/v1/model');
     return response.data;
 };
 
 export const getModelMetrics = async () => {
     const response = await api.get('/api/v1/model/metrics');
+    return response.data;
+};
+
+export const getPredictionHistory = async () => {
+    const response = await api.get('/api/v1/model/history');
     return response.data;
 };
 

@@ -20,7 +20,7 @@ param(
     [switch]$Help,
     
     [string]$ApiHost = "0.0.0.0",
-    [int]$Port = 8001,
+    [int]$Port = 8000,
     [int]$Workers = 4
 )
 

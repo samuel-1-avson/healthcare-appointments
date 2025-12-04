@@ -22,6 +22,7 @@ import io
 import numpy as np
 import pandas as pd
 import joblib
+import shap
 from sklearn.pipeline import Pipeline
 
 from .config import get_settings, RiskTierConfig
@@ -84,6 +85,7 @@ class NoShowPredictor:
         """Initialize the predictor."""
         self.settings = get_settings()
         self.model = None
+        self.explainer = None
         self.preprocessor = None
         self.feature_names: List[str] = []
         self.input_features: List[str] = []
@@ -164,6 +166,30 @@ class NoShowPredictor:
                 logger.warning(f"Failed to load metadata: {e}")
                 self.metadata = {}
         
+        # Load feature importance
+        feature_importance_path = model_path.parent / "feature_importance.json"
+        self.feature_importance = []
+        if feature_importance_path.exists():
+            try:
+                with open(feature_importance_path, 'r') as f:
+                    self.feature_importance = json.load(f)
+                logger.info(f"Feature importance loaded from {feature_importance_path}")
+            except Exception as e:
+                logger.warning(f"Failed to load feature importance: {e}")
+
+        # Load SHAP explainer
+        explainer_path = model_path.parent / "shap_explainer.joblib"
+        if explainer_path.exists():
+            try:
+                self.explainer = joblib.load(explainer_path)
+                logger.info(f"SHAP explainer loaded from {explainer_path}")
+            except Exception as e:
+                logger.warning(f"Failed to load SHAP explainer: {e}")
+                self.explainer = None
+        else:
+            logger.warning("SHAP explainer not found.")
+            self.explainer = None
+
         # Set default metadata
         if not self.metadata:
             self.metadata = {
@@ -416,20 +442,18 @@ class NoShowPredictor:
         PredictionError
             If prediction fails
         """
-        if not self.is_loaded:
-            raise PredictionError("Model not loaded. Call load_model() first.")
-        
-        if threshold is None:
-            threshold = self.settings.default_threshold
-        
         try:
             # Prepare features
             df = self._prepare_features(appointment)
             X = self._transform_features(df)
             
             # Get prediction
-            probability = self.model.predict_proba(X)[0, 1]
-            prediction = int(probability >= threshold)
+            if hasattr(self.model, 'predict_proba'):
+                probability = self.model.predict_proba(X)[0, 1]
+            else:
+                probability = float(self.model.predict(X)[0])
+            
+            prediction = int(probability >= (threshold or self.settings.default_threshold))
             
             # Create risk assessment
             risk = create_risk_assessment(probability)
@@ -538,6 +562,68 @@ class NoShowPredictor:
         For linear models, uses coefficients.
         """
         try:
+            # Use SHAP if available
+            if self.explainer is not None:
+                try:
+                    # Calculate SHAP values
+                    # Note: TreeExplainer expects transformed features
+                    shap_values = self.explainer.shap_values(X)
+                    
+                    # Handle different SHAP output formats (list for classification vs array)
+                    if isinstance(shap_values, list):
+                        # Binary classification, take the positive class (index 1)
+                        shap_values = shap_values[1]
+                    
+                    # If single prediction, get first row
+                    if len(shap_values.shape) > 1:
+                        shap_values = shap_values[0]
+                        
+                    # Get feature names
+                    if self.feature_names:
+                        feature_names = self.feature_names
+                    else:
+                        feature_names = [f'feature_{i}' for i in range(len(shap_values))]
+                        
+                    contributions = []
+                    limit = min(len(feature_names), len(shap_values))
+                    
+                    for i in range(limit):
+                        name = feature_names[i]
+                        shap_val = float(shap_values[i])
+                        
+                        # Skip zero contributions
+                        if abs(shap_val) < 0.001:
+                            continue
+                            
+                        # Direction: positive SHAP pushes towards class 1 (No-Show)
+                        direction = 'positive' if shap_val > 0 else 'negative'
+                        
+                        contributions.append(
+                            FeatureContribution(
+                                feature=name,
+                                value=X[0, i] if i < X.shape[1] else 0, # Approximate value
+                                contribution=round(shap_val, 4),
+                                direction=direction
+                            )
+                        )
+                        
+                    # Sort by absolute contribution
+                    contributions.sort(key=lambda x: abs(x.contribution), reverse=True)
+                    
+                    # Split into risk and protective factors
+                    top_risk = [c for c in contributions if c.direction == 'positive'][:5]
+                    top_protective = [c for c in contributions if c.direction == 'negative'][:5]
+                    
+                    return PredictionExplanation(
+                        top_risk_factors=top_risk,
+                        top_protective_factors=top_protective,
+                        summary=self._generate_summary_text(probability, df)
+                    )
+                    
+                except Exception as e:
+                    logger.warning(f"SHAP calculation failed: {e}. Falling back to simple explanation.")
+
+            # Fallback to simple explanation (existing logic)
             # Handle Pipeline model
             model = self.model
             if isinstance(model, Pipeline):
@@ -667,18 +753,11 @@ class NoShowPredictor:
             return {"error": "Model not loaded"}
         
         return {
-            "name": self.metadata.get('model_name', 'Unknown'),
-            "version": self.metadata.get('model_version', '1.0.0'),
-            "type": type(self.model).__name__,
-            "features": len(self.feature_names) if self.feature_names else 'Unknown',
-            "trained_at": self.metadata.get('trained_at'),
-            "metrics": self.metadata.get('metrics', {})
+            "metadata": self.metadata,
+            "feature_importance": getattr(self, 'feature_importance', []),
+            "input_features": self.input_features,
+            "model_type": type(self.model).__name__
         }
-
-
-# ==================== SINGLETON PREDICTOR ====================
-
-_predictor: Optional[NoShowPredictor] = None
 
 
 def get_predictor() -> NoShowPredictor:
@@ -716,3 +795,5 @@ def reload_predictor() -> NoShowPredictor:
     _predictor = NoShowPredictor()
     _predictor.load_model()
     return _predictor
+
+_predictor = None

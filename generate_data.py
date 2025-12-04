@@ -439,21 +439,51 @@ print(f"   💾 Saved: summary_sms.csv ({len(sms_summary)} rows)")
 # 6.8 Patient segments summary
 patient_summary = df_dashboard.groupby('patientid').agg({
     'appointment_count': 'sum',
-    'no_show': ['sum', 'mean']
+    'no_show': ['sum', 'mean'],
+    'age': 'max',
+    'lead_days': 'mean'
 }).reset_index()
-patient_summary.columns = ['patientid', 'total_appointments', 'total_noshows', 'noshow_rate']
+patient_summary.columns = ['patientid', 'visit_count', 'total_noshows', 'noshow_rate', 'age', 'avg_lead_days']
+patient_summary['noshow_rate'] = patient_summary['noshow_rate'] * 100
 
-patient_summary['patient_category'] = pd.cut(
-    patient_summary['noshow_rate'],
-    bins=[-0.01, 0, 0.2, 0.5, 1.01],
-    labels=['Perfect Attendance', 'Reliable', 'At Risk', 'Chronic No-Show']
-)
+def categorize_patient(row):
+    count = row['visit_count']
+    rate = row['noshow_rate']
+    
+    if count == 1 and rate == 100: return 'Ghost Patient'
+    if count == 1 and rate == 0: return 'New Good Patient'
+    if count >= 5 and rate == 0: return 'VIP'
+    if count >= 3 and rate >= 66: return 'Chronic Problem'
+    if count >= 2 and 20 <= rate < 66: return 'Inconsistent'
+    if count >= 2 and rate < 20: return 'Reliable Regular'
+    return 'Other'
 
-patient_segment_summary = patient_summary['patient_category'].value_counts().reset_index()
+patient_summary['patient_segment'] = patient_summary.apply(categorize_patient, axis=1)
+
+patient_segment_summary = patient_summary['patient_segment'].value_counts().reset_index()
 patient_segment_summary.columns = ['patient_segment', 'patient_count']
 patient_segment_summary['percentage'] = (patient_segment_summary['patient_count'] / len(patient_summary) * 100).round(2)
 patient_segment_summary.to_csv(DASHBOARD_DIR / "summary_patient_segments.csv", index=False)
 print(f"   💾 Saved: summary_patient_segments.csv ({len(patient_segment_summary)} rows)")
+
+# 6.9 Behavior Evolution (New)
+# Analyze no-show rate by visit number (1st, 2nd, 3rd...)
+behavior_df = df_dashboard.copy()
+# Ensure we have visit number
+if 'patient_total_appointments' not in behavior_df.columns:
+    behavior_df = behavior_df.sort_values(['patientid', 'appointmentday'])
+    behavior_df['patient_total_appointments'] = behavior_df.groupby('patientid').cumcount() + 1
+
+behavior_summary = behavior_df.groupby('patient_total_appointments').agg({
+    'appointment_count': 'sum',
+    'no_show': 'mean'
+}).reset_index()
+behavior_summary.columns = ['visit_number', 'total_appointments', 'noshow_rate']
+behavior_summary['noshow_rate'] = (behavior_summary['noshow_rate'] * 100).round(2)
+# Filter to first 10 visits for cleaner chart
+behavior_summary = behavior_summary[behavior_summary['visit_number'] <= 10]
+behavior_summary.to_csv(DASHBOARD_DIR / "summary_behavior.csv", index=False)
+print(f"   💾 Saved: summary_behavior.csv ({len(behavior_summary)} rows)")
 
 # ============================================================================
 # STEP 7: CREATE SQL ANALYSIS EXPORTS

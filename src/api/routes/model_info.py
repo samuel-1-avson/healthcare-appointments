@@ -6,6 +6,9 @@ Endpoints for model information and metadata.
 
 from typing import Dict, Any, List
 from datetime import datetime
+import logging
+import pandas as pd
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -15,6 +18,7 @@ from ..predict import get_predictor, NoShowPredictor
 
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get(
@@ -152,3 +156,106 @@ async def reload_model(
             status_code=500,
             detail=f"Failed to reload model: {str(e)}"
         )
+
+
+@router.get(
+    "/history",
+    summary="Get Historical Data",
+    description="Get aggregated historical data for dashboard charts"
+)
+async def get_history(
+    settings: Settings = Depends(get_settings)
+) -> Dict[str, Any]:
+    """
+    Get historical aggregation data.
+    
+    Reads from generated summary CSV files if available.
+    """
+    
+    # Define paths (assuming standard structure)
+    # In Docker, these should be mounted or available
+    # We try multiple locations to be robust
+    base_paths = [
+        Path("data/dashboard"),
+        Path("/app/data/dashboard"),
+        Path("../data/dashboard"),
+        Path("c:/Users/samue/Desktop/NSP/healthcare-appointments/data/dashboard") # Local fallback
+    ]
+    
+    dashboard_dir = None
+    for p in base_paths:
+        if p.exists():
+            dashboard_dir = p
+            break
+            
+    if not dashboard_dir:
+        return {
+            "status": "no_data",
+            "message": "Historical data not found. Please run data generation script."
+        }
+        
+    try:
+        # Load Daily Summary
+        daily_path = dashboard_dir / "summary_daily.csv"
+        daily_data = []
+        if daily_path.exists():
+            df_daily = pd.read_csv(daily_path)
+            # Sort by date
+            df_daily = df_daily.sort_values('date')
+            # Take last 30 days for chart
+            df_daily = df_daily.tail(30)
+            daily_data = df_daily.to_dict(orient='records')
+            
+        # Load Risk Tier Summary
+        tier_path = dashboard_dir / "summary_risk_tier.csv"
+        tier_data = []
+        if tier_path.exists():
+            df_tier = pd.read_csv(tier_path)
+            tier_data = df_tier.to_dict(orient='records')
+
+        # Load Recent Alerts (Priority Interventions)
+        # Robustly find project root from this file's location
+        current_file = Path(__file__).resolve()
+        project_root = current_file.parent.parent.parent.parent
+        
+        alerts_path = project_root / "outputs" / "sql" / "sql_priority_interventions.csv"
+        
+        alerts_data = []
+        if alerts_path.exists():
+            df_alerts = pd.read_csv(alerts_path)
+            # Take top 5
+            df_alerts = df_alerts.head(5)
+            alerts_data = df_alerts.to_dict(orient='records')
+        else:
+            # Fallback
+            alt_path = dashboard_dir.parent.parent / "outputs" / "sql" / "sql_priority_interventions.csv"
+            if alt_path.exists():
+                df_alerts = pd.read_csv(alt_path)
+                alerts_data = df_alerts.head(5).to_dict(orient='records')
+
+        # Load Patient Segments
+        segments_path = dashboard_dir / "summary_patient_segments.csv"
+        segments_data = []
+        if segments_path.exists():
+            df_segments = pd.read_csv(segments_path)
+            segments_data = df_segments.to_dict(orient='records')
+
+        # Load Behavior Evolution
+        behavior_path = dashboard_dir / "summary_behavior.csv"
+        behavior_data = []
+        if behavior_path.exists():
+            df_behavior = pd.read_csv(behavior_path)
+            behavior_data = df_behavior.to_dict(orient='records')
+
+        return {
+            "status": "success",
+            "daily_trends": daily_data,
+            "risk_distribution": tier_data,
+            "recent_alerts": alerts_data,
+            "patient_segments": segments_data,
+            "behavior_evolution": behavior_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to load history: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

@@ -49,22 +49,6 @@ This system addresses one of healthcare's most persistent and costly problems: *
 - Reduces idle time and wasted resources
 - Optimizes patient flow throughout the day
 
-#### **4. Data-Driven Decisions**
-- Provides dashboards with analytics and trends
-- Identifies systemic issues (e.g., certain appointment times have higher no-show rates)
-- Supports evidence-based policy changes
-- Tracks intervention effectiveness
-
-#### **5. AI-Powered Insights**
-- LLM chat assistant helps staff understand predictions
-- Generates explanations for why a patient is high-risk
-- Provides recommendations for intervention strategies
-- Answers questions about patient patterns and trends
-
----
-
-## 👥 Who Can Use This System?
-
 ### **Primary Users:**
 
 #### **1. Healthcare Administrators & Operations Managers**
