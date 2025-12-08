@@ -59,9 +59,11 @@ services:
       # LLM Settings
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
-      - NOSHOW_LLM_DEFAULT_PROVIDER=${LLM_PROVIDER:-openai}
-      - NOSHOW_LLM_DEFAULT_MODEL=${LLM_MODEL:-gpt-4o-mini}
+      - NOSHOW_LLM_DEFAULT_PROVIDER=${LLM_PROVIDER:-local}
+      - NOSHOW_LLM_DEFAULT_MODEL=${LLM_MODEL:-llama3}
       - NOSHOW_LLM_CACHE_ENABLED=${LLM_CACHE:-true}
+      # Ollama URL (use host.docker.internal to reach host machine from container)
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       
       # LangChain/LangSmith (optional)
       - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING:-false}
@@ -81,6 +83,10 @@ services:
       - ./models/production:/app/models/production:ro
       # Configuration
       - ./config:/app/config:ro
+      # Data directories for dashboard and predictions
+      - ./data/raw:/app/data/raw:ro
+      - ./data/processed:/app/data/processed:ro
+      - ./data/dashboard:/app/data/dashboard:ro
       # Policy documents for RAG
       - ./data/documents:/app/data/documents:ro
       # Vector store (read-write for caching)
@@ -91,6 +97,8 @@ services:
       - ./logs:/app/logs
       # Evaluation results
       - ./evals:/app/evals
+      # Outputs (for patient alerts data)
+      - ./outputs:/app/outputs:ro
     
     # Resource limits & Scaling
     deploy:

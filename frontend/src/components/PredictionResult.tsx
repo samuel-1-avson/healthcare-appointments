@@ -210,7 +210,7 @@ const PredictionResult: React.FC<PredictionResultProps> = ({ result, onReset }) 
                     </h3>
                     <div className="h-[400px] w-full">
                         {chartsReady && (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height={400} minHeight={400}>
                                 <BarChart
                                     layout="vertical"
                                     data={shapData}

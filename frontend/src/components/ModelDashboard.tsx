@@ -250,9 +250,13 @@ const ModelDashboard = () => {
         document.body.removeChild(link);
     };
 
-    // Calculate ROI
-    const preventedNoShows = metrics?.total_predictions ? Math.round(metrics.total_predictions * 0.15) : 0;
+    // Calculate ROI - use daily_trends data for total appointments
+    const totalAppointments = history?.daily_trends?.reduce((acc: number, curr: any) => acc + curr.total_appointments, 0) || 0;
+    const preventedNoShows = totalAppointments > 0 ? Math.round(totalAppointments * 0.15) : 0;
     const estimatedSavings = preventedNoShows * settings.costPerNoShow;
+
+    // Extract accuracy from nested metrics object
+    const modelAccuracy = metrics?.metrics?.accuracy ?? metrics?.accuracy;
 
     // Transform Data
     const trendData = history?.daily_trends?.map((item: any) => ({
@@ -263,6 +267,30 @@ const ModelDashboard = () => {
         rate: (item.no_shows / item.total_appointments) * 100
     })) || [];
 
+    // Generate real sparkline data from daily_trends (last 7 days)
+    const appointmentSparkline = trendData.slice(-7).map((d: any) => ({ value: d.total }));
+    const noShowRateSparkline = trendData.slice(-7).map((d: any) => ({ value: d.rate }));
+    const savingsSparkline = trendData.slice(-7).map((d: any) => ({
+        value: Math.round(d.total * 0.15 * settings.costPerNoShow / 1000)
+    }));
+
+    // Calculate week-over-week percentage changes
+    const calculateChange = (data: any[], key: string) => {
+        if (!data || data.length < 14) return null;
+        const thisWeek = data.slice(-7).reduce((acc, curr) => acc + (curr[key] || 0), 0);
+        const lastWeek = data.slice(-14, -7).reduce((acc, curr) => acc + (curr[key] || 0), 0);
+        if (lastWeek === 0) return null;
+        const change = ((thisWeek - lastWeek) / lastWeek) * 100;
+        return change;
+    };
+
+    const appointmentChange = calculateChange(history?.daily_trends, 'total_appointments');
+    const noShowRates = history?.daily_trends?.map((d: any) => ({ rate: (d.no_shows / d.total_appointments) * 100 })) || [];
+    const thisWeekRate = noShowRates.slice(-7).reduce((acc: number, curr: any) => acc + curr.rate, 0) / 7;
+    const lastWeekRate = noShowRates.slice(-14, -7).reduce((acc: number, curr: any) => acc + curr.rate, 0) / 7;
+    const noShowRateChange = lastWeekRate > 0 ? ((thisWeekRate - lastWeekRate) / lastWeekRate) * 100 : null;
+
+    // Risk distribution data
     const riskData = history?.risk_distribution?.map((item: any) => ({
         name: item.risk_tier === 'MINIMAL' ? 'Low' :
             item.risk_tier === 'LOW' ? 'Low' :
@@ -280,15 +308,11 @@ const ModelDashboard = () => {
         return acc;
     }, []) || [];
 
+    // Feature importance data
     const featureImportanceData = modelInfo?.feature_importance?.slice(0, 8).map((item: any) => ({
         name: item.feature.replace(/_/g, ' '),
         importance: item.importance
     })) || [];
-
-    // Mock data for sparklines
-    const mockSparklineData = [
-        { value: 40 }, { value: 30 }, { value: 45 }, { value: 50 }, { value: 49 }, { value: 60 }, { value: 70 }
-    ];
 
     return (
         <div className="space-y-8 pb-8">
@@ -341,20 +365,20 @@ const ModelDashboard = () => {
                     <>
                         <StatCard
                             title="Total Appointments"
-                            value={metrics?.total_predictions?.toLocaleString() || history?.daily_trends?.reduce((acc: number, curr: any) => acc + curr.total_appointments, 0).toLocaleString() || "0"}
-                            change="+12.5%"
-                            trend="up"
+                            value={totalAppointments.toLocaleString()}
+                            change={appointmentChange !== null ? `${appointmentChange >= 0 ? '+' : ''}${appointmentChange.toFixed(1)}%` : null}
+                            trend={appointmentChange !== null ? (appointmentChange >= 0 ? "up" : "down") : "up"}
                             icon={Calendar}
-                            data={mockSparklineData}
+                            data={appointmentSparkline.length > 0 ? appointmentSparkline : undefined}
                             ready={chartsReady}
                         />
                         <StatCard
                             title="No-Show Rate"
-                            value={`${(history?.daily_trends?.reduce((acc: number, curr: any) => acc + (curr.no_shows / curr.total_appointments), 0) / (history?.daily_trends?.length || 1) * 100).toFixed(1)}%`}
-                            change="-2.1%"
-                            trend="down"
+                            value={`${thisWeekRate.toFixed(1)}%`}
+                            change={noShowRateChange !== null ? `${noShowRateChange >= 0 ? '+' : ''}${noShowRateChange.toFixed(1)}%` : null}
+                            trend={noShowRateChange !== null ? (noShowRateChange <= 0 ? "up" : "down") : "down"}
                             icon={AlertTriangle}
-                            data={mockSparklineData.map(d => ({ value: 100 - d.value }))}
+                            data={noShowRateSparkline.length > 0 ? noShowRateSparkline : undefined}
                             ready={chartsReady}
                         />
                         <StatCard
@@ -363,16 +387,16 @@ const ModelDashboard = () => {
                             change="ROI"
                             trend="up"
                             icon={DollarSign}
-                            data={mockSparklineData}
+                            data={savingsSparkline.length > 0 ? savingsSparkline : undefined}
                             ready={chartsReady}
                         />
                         <StatCard
                             title="Model Accuracy"
-                            value={metrics?.accuracy ? `${(metrics.accuracy * 100).toFixed(1)}%` : "N/A"}
-                            change="+0.3%"
+                            value={modelAccuracy ? `${(modelAccuracy * 100).toFixed(1)}%` : "N/A"}
+                            change={modelAccuracy ? null : null}
                             trend="up"
                             icon={CheckCircle}
-                            data={mockSparklineData}
+                            data={undefined}
                             ready={chartsReady}
                         />
                     </>

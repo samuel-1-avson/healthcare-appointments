@@ -165,7 +165,8 @@ sequenceDiagram
 
 **2. `/api/v1/llm` (LLM Services)**
 - `POST /llm/chat` - Conversational AI (orchestrator)
-- `POST /llm/chat/agent` - Tool-using agent
+- `POST /llm/agent` - Tool-using agent with prediction context
+- `POST /llm/smart-fill` - AI-powered form data generation
 - `POST /llm/explain` - Generate prediction explanation
 - `POST /llm/intervention` - Get intervention recommendations
 - `POST /llm/predict-and-explain` - Combined endpoint
@@ -249,7 +250,9 @@ MINIMAL:   0.00+ → No extra intervention
 
 **4. Agents (`agents/`)**
 - `HealthcareAgent`: Tool-using agent with prediction API access
-- Tools: `PredictNoShow`, `ExplainRisk`, `SearchPolicies`
+- Tools: `PredictionTool`, `BatchPredictionTool`, `ExplanationTool`, `PolicySearchTool`
+- Supports prediction context for contextual follow-up questions
+- `generate_smart_fill()`: AI-powered sample patient data generation
 
 **5. Evaluation (`evaluation/`)**
 - Ragas metrics: faithfulness, answer relevancy, context precision
@@ -269,6 +272,7 @@ App.tsx (Root)
 ├── PredictionForm.tsx (Patient Data Entry)
 │   ├── Form validation (React Hook Form)
 │   ├── Dropdown menus (neighborhoods, weekdays)
+│   ├── AI-powered Smart Fill with scenario selection
 │   └── Submit button with loading state
 │
 ├── PredictionResult.tsx (Risk Display)
@@ -281,7 +285,8 @@ App.tsx (Root)
 │   ├── Message history (scrollable)
 │   ├── Input field with auto-resize
 │   ├── Typing indicator
-│   └── Tool call badges
+│   ├── Prediction context awareness (from Ask Assistant)
+│   └── Auto-generated context greetings
 │
 ├── ModelDashboard.tsx (Analytics)
 │   ├── Metrics cards (accuracy, AUC-ROC, F1)

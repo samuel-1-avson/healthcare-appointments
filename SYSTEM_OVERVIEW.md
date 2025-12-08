@@ -35,13 +35,15 @@ This system addresses one of healthcare's most persistent and costly problems: *
 #### **1. Predictive Intelligence**
 - Uses machine learning to predict which patients are **likely to miss** their appointments
 - Analyzes patterns from historical data (age, appointment type, previous no-shows, lead time, SMS reminders, distance, etc.)
-- Provides **risk scores** (Low/Medium/High) for each appointment
+- Provides **risk scores** (Low/Medium/High/Critical) for each appointment
+- **AI-powered Smart Fill**: Generates realistic patient profiles for testing different risk scenarios
 
 #### **2. Proactive Intervention**
 - Identifies high-risk appointments **in advance**
 - Enables targeted outreach (reminder calls, text messages, rescheduling offers)
 - Allows strategic overbooking of high-risk slots
 - Facilitates waitlist management for likely no-shows
+- **Context-aware AI Assistant**: Ask follow-up questions about predictions with full context
 
 #### **3. Resource Optimization**
 - Maximizes clinic utilization by filling would-be empty slots

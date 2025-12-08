@@ -1003,16 +1003,17 @@ Contains LangChain chain implementations for various tasks:
 
 #### `src/llm/agents/`
 Contains LangChain agent implementations:
-- Healthcare assistant agent
-- Tool-using agents
-- Multi-step reasoning agents
+- `healthcare_agent.py`: Main conversational agent with tool-calling
+  - Tools: `PredictionTool`, `BatchPredictionTool`, `ExplanationTool`, `PolicySearchTool`
+  - Supports prediction context for contextual follow-up questions
+  - `generate_smart_fill()`: Generates sample patient data for form filling
+- Multi-step reasoning and tool orchestration
 
 #### `src/llm/tools/`
 Contains LangChain tools that agents can use:
+- `prediction_tool.py`: Tool for making no-show predictions
 - `explanation_tool.py`: Tool for generating prediction explanations
-- Database query tools
-- Calculation tools
-- Search tools
+- `policy_tool.py`: Tool for searching healthcare policies
 
 #### `src/llm/prompts/`
 Contains prompt templates and prompt engineering:
@@ -1126,27 +1127,27 @@ Contains production-ready LLM components:
 **Key Features**:
 - Rich form interface with all patient features
 - Input validation
+- AI-powered Smart Fill with scenario dropdown (High/Medium/Low Risk, Random)
 - Responsive design with glassmorphism
-- Loading states during prediction
-- Error handling and display
-- Form reset functionality
+- Loading states during prediction and Smart Fill
+- Error handling with fallback
 - Animated interactions
 
 **Key Functions**:
 - `handleSubmit()`: Submits prediction request to API
+- `handleSmartFill()`: Fetches AI-generated patient data from `/api/v1/llm/smart-fill`
 - `handleInputChange()`: Manages form state
-- `resetForm()`: Clears form inputs
 
 #### `frontend/src/components/PredictionResult.tsx`
 **Purpose**: Displays prediction results with visualizations.
 
 **Key Features**:
-- Shows no-show probability
-- Risk level categorization (Low/Medium/High)
+- Shows no-show probability with radial gauge
+- Risk level categorization (Low/Medium/High/Critical)
 - Confidence score display
-- Feature importance visualization
-- SHAP value explanations
+- Feature importance visualization (SHAP values)
 - Recommendation generation
+- "Ask Assistant" button passes prediction context to chat
 - Beautiful cards with animations
 - Color-coded risk indicators
 
@@ -1174,14 +1175,15 @@ Contains production-ready LLM components:
 - Interactive chat interface
 - Message history display
 - Typing indicators
-- Streaming responses
-- Context-aware responses
-- Medical knowledge base integration
+- **Prediction context awareness**: Receives context from "Ask Assistant" button
+- **Auto-generated greeting**: Sends context-aware initial message with prediction details
+- Context-aware responses based on recent predictions
+- Quick prompt suggestions
 - Markdown formatting for responses
 - Auto-scroll to latest message
 
 **Key Functions**:
-- `sendMessage()`: Sends chat message to LLM API
+- `handleSendMessage()`: Sends chat message to LLM API with optional context
 - `handleInput()`: Manages user input
 - `renderMessage()`: Formats and displays messages
 
@@ -1215,10 +1217,11 @@ Contains production-ready LLM components:
 - Provides request/response interceptors
 
 **Key Functions**:
-- `makePrediction()`: Calls prediction API
-- `getChatResponse()`: Calls LLM chat API
-- `getModelMetrics()`: Retrieves model metrics
-- `uploadBatch()`: Sends batch prediction request
+- `predictNoShow()`: Calls prediction API
+- `chatWithAssistant()`: Calls LLM chat API with optional prediction context
+- `getSmartFill()`: Fetches AI-generated patient data for form
+- `getModelInfo()`: Retrieves model metadata
+- `batchPredict()`: Sends batch prediction request
 
 ### Frontend Types
 
