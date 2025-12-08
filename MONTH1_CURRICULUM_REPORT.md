@@ -238,7 +238,288 @@ flowchart LR
 
 
 
+### Exploratory Data Analysis (EDA) Deep Dive
+
+**Exploratory Data Analysis (EDA)** is a critical approach to analyzing datasets to summarize their main characteristics, often using visual methods. Coined by statistician John Tukey in 1977, EDA encourages analysts to explore data with an open mind before applying formal modeling.
+
+> [!TIP]
+> EDA is about **asking questions** and **letting the data tell its story** before jumping to conclusions or models.
+
+```mermaid
+flowchart TB
+    subgraph "EDA Process"
+        A[1. Data Overview] --> B[2. Univariate Analysis]
+        B --> C[3. Bivariate Analysis]
+        C --> D[4. Multivariate Analysis]
+        D --> E[5. Data Quality Assessment]
+        E --> F[6. Insights & Hypotheses]
+    end
+    
+    style A fill:#3b82f6,color:#fff
+    style B fill:#22c55e,color:#fff
+    style C fill:#eab308,color:#000
+    style D fill:#ef4444,color:#fff
+    style E fill:#8b5cf6,color:#fff
+    style F fill:#06b6d4,color:#fff
+```
+
+---
+
+#### EDA Goals
+
+| Goal | Description | Healthcare Project Example |
+|------|-------------|---------------------------|
+| **Understand Structure** | Know the shape, types, and relationships in data | 110,527 rows × 14 columns, mix of categorical and numeric |
+| **Detect Anomalies** | Find outliers, errors, missing values | Negative ages, future scheduled dates |
+| **Test Assumptions** | Verify data meets expectations | No-show encoded as 'Yes'/'No' (counterintuitive) |
+| **Discover Patterns** | Find trends, correlations, segments | Young adults have highest no-show rate |
+| **Generate Hypotheses** | Form testable theories for modeling | SMS reminders reduce no-shows |
+
+---
+
+#### Step 1: Data Overview
+
+**Purpose:** Get a high-level understanding of the dataset structure.
+
+```python
+# Key pandas functions for data overview
+df.shape          # (110527, 14) - rows and columns
+df.dtypes         # Data types for each column
+df.info()         # Non-null counts, memory usage
+df.head()         # First 5 rows
+df.describe()     # Statistical summary
+df.columns        # Column names
+```
+
+**Healthcare Dataset Overview:**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `PatientId` | int64 | Unique patient identifier |
+| `AppointmentID` | int64 | Unique appointment identifier |
+| `Gender` | object | F/M |
+| `ScheduledDay` | datetime | When appointment was scheduled |
+| `AppointmentDay` | datetime | Actual appointment date |
+| `Age` | int64 | Patient age (0-115) |
+| `Neighbourhood` | object | 81 unique neighborhoods |
+| `Scholarship` | int64 | Bolsa Família program (0/1) |
+| `Hypertension` | int64 | Has hypertension (0/1) |
+| `Diabetes` | int64 | Has diabetes (0/1) |
+| `Alcoholism` | int64 | Has alcoholism (0/1) |
+| `Handicap` | int64 | Disability level (0-4) |
+| `SMS_received` | int64 | Received SMS reminder (0/1) |
+| `No-show` | object | **Target variable** - 'Yes'/'No' |
+
+---
+
+#### Step 2: Univariate Analysis
+
+**Purpose:** Examine each variable independently to understand its distribution.
+
+**For Categorical Variables:**
+```python
+# Value counts and proportions
+df['Gender'].value_counts()
+df['No-show'].value_counts(normalize=True)
+
+# Bar charts
+df['Age_Group'].value_counts().plot(kind='bar')
+```
+
+**For Numeric Variables:**
+```python
+# Central tendency
+df['Age'].mean()      # 37.09
+df['Age'].median()    # 37.0
+df['Age'].mode()      # 0 (infants)
+
+# Dispersion
+df['Age'].std()       # 23.11
+df['Age'].var()       # 534.18
+df['Age'].quantile([0.25, 0.5, 0.75])
+
+# Histograms
+df['Age'].hist(bins=50)
+df['Lead_Days'].plot(kind='box')
+```
+
+**Key Univariate Findings:**
+
+| Variable | Finding |
+|----------|---------|
+| **No-show Rate** | 20.19% (22,319 / 110,527) |
+| **Gender** | 65% Female, 35% Male |
+| **Age** | Mean 37.1, ranges from 0 to 115 |
+| **SMS Received** | Only 32% received reminders |
+| **Lead Days** | Median 4 days, max 178 days |
+
+---
+
+#### Step 3: Bivariate Analysis
+
+**Purpose:** Examine relationships between pairs of variables, especially with the target.
+
+**Categorical vs Target:**
+```python
+# Cross-tabulation
+pd.crosstab(df['Age_Group'], df['No_Show'], normalize='index')
+
+# Grouped bar charts
+df.groupby('Age_Group')['No_Show'].mean().plot(kind='bar')
+```
+
+**Numeric vs Target:**
+```python
+# Group statistics
+df.groupby('No_Show')['Age'].describe()
+
+# Box plots by group
+df.boxplot(column='Lead_Days', by='No_Show')
+```
+
+**Key Bivariate Findings:**
+
+| Relationship | Insight |
+|--------------|---------|
+| **Age vs No-show** | Young adults (18-24) have highest rate (24.01%) |
+| **SMS vs No-show** | SMS reduces no-show by 3.49 points (21.7% → 16.7%) |
+| **Lead Time vs No-show** | Longer lead time = higher no-show (r = 0.09) |
+| **Scholarship vs No-show** | Low-income patients: 23.78% vs 19.74% |
+| **Weekend vs No-show** | Saturday has lowest rate (14.66%) |
+
+---
+
+#### Step 4: Multivariate Analysis
+
+**Purpose:** Examine interactions between multiple variables simultaneously.
+
+**Correlation Matrix:**
+```python
+# Numeric correlations
+numeric_cols = ['Age', 'Lead_Days', 'SMS_received', 'Scholarship', 'No_Show']
+df[numeric_cols].corr()
+
+# Heatmap visualization
+import seaborn as sns
+sns.heatmap(df[numeric_cols].corr(), annot=True, cmap='RdYlGn_r')
+```
+
+**Feature Interactions:**
+```python
+# Pivot tables for multi-way analysis
+pd.pivot_table(df, 
+               values='No_Show', 
+               index='Age_Group', 
+               columns='SMS_received', 
+               aggfunc='mean')
+```
+
+**Correlation Matrix Results:**
+
+|  | Age | Lead_Days | SMS_received | Scholarship | No_Show |
+|--|-----|-----------|--------------|-------------|---------|
+| **Age** | 1.00 | 0.01 | 0.01 | -0.09 | -0.06 |
+| **Lead_Days** | 0.01 | 1.00 | 0.13 | 0.01 | 0.09 |
+| **SMS_received** | 0.01 | 0.13 | 1.00 | -0.05 | -0.04 |
+| **Scholarship** | -0.09 | 0.01 | -0.05 | 1.00 | 0.03 |
+| **No_Show** | -0.06 | 0.09 | -0.04 | 0.03 | 1.00 |
+
+---
+
+#### Step 5: Data Quality Assessment
+
+**Purpose:** Identify issues that need cleaning before modeling.
+
+| Issue | Detection Method | Healthcare Example |
+|-------|------------------|-------------------|
+| **Missing Values** | `df.isnull().sum()` | No missing values found |
+| **Duplicates** | `df.duplicated().sum()` | 0 duplicates |
+| **Outliers** | IQR method, z-scores | Age = -1 (negative), Age = 115 |
+| **Invalid Values** | Domain knowledge | Lead_Days < 0 (scheduled after appointment) |
+| **Encoding Issues** | `df['col'].unique()` | 'Yes'/'No' for no-show (confusing) |
+| **Data Types** | `df.dtypes` | Dates stored as strings |
+
+**Outlier Detection Example:**
+```python
+# IQR method for age
+Q1 = df['Age'].quantile(0.25)
+Q3 = df['Age'].quantile(0.75)
+IQR = Q3 - Q1
+outliers = df[(df['Age'] < Q1 - 1.5*IQR) | (df['Age'] > Q3 + 1.5*IQR)]
+print(f"Found {len(outliers)} age outliers")
+```
+
+---
+
+#### Step 6: Visualization Types for EDA
+
+| Visualization | Use Case | Code Example |
+|---------------|----------|--------------|
+| **Histogram** | Distribution of numeric variable | `df['Age'].hist(bins=50)` |
+| **Bar Chart** | Counts/rates by category | `df['Gender'].value_counts().plot(kind='bar')` |
+| **Box Plot** | Distribution + outliers | `df.boxplot(column='Age', by='Gender')` |
+| **Scatter Plot** | Two numeric variables | `plt.scatter(df['Age'], df['Lead_Days'])` |
+| **Heatmap** | Correlation matrix | `sns.heatmap(df.corr(), annot=True)` |
+| **Pie Chart** | Proportions | `df['No_Show'].value_counts().plot(kind='pie')` |
+| **Violin Plot** | Distribution by group | `sns.violinplot(x='Gender', y='Age', data=df)` |
+| **Pair Plot** | All pairwise relationships | `sns.pairplot(df[numeric_cols])` |
+
+---
+
+#### EDA in This Project: Key Visualizations
+
+**1. Target Distribution:**
+```python
+# No-show rate pie chart
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+df['No_Show'].value_counts().plot(kind='bar', ax=axes[0])
+df['No_Show'].value_counts().plot(kind='pie', ax=axes[1], autopct='%1.1f%%')
+```
+
+**2. Age Group Analysis:**
+```python
+# No-show rate by age group
+age_rates = df.groupby('Age_Group')['No_Show'].mean() * 100
+age_rates.plot(kind='bar', color=['green' if x < 20 else 'red' for x in age_rates])
+plt.axhline(20.19, color='gray', linestyle='--', label='Baseline')
+```
+
+**3. SMS Effectiveness:**
+```python
+# Side-by-side comparison
+sms_rates = df.groupby('SMS_received')['No_Show'].mean() * 100
+sms_rates.plot(kind='bar', color=['red', 'green'])
+```
+
+**4. Lead Time Trend:**
+```python
+# No-show rate by lead time bucket
+df['Lead_Bucket'] = pd.cut(df['Lead_Days'], bins=[0, 7, 14, 30, 180])
+df.groupby('Lead_Bucket')['No_Show'].mean().plot(marker='o')
+```
+
+---
+
+#### EDA Summary: Healthcare No-Show Insights
+
+| Category | Key Finding | Business Implication |
+|----------|-------------|---------------------|
+| **Overall Rate** | 20.19% no-show | ~$3.35M annual waste |
+| **Age Pattern** | Young adults: 24% | Target with mobile engagement |
+| **SMS Impact** | -3.49% with SMS | Expand SMS program (32% → 100%) |
+| **Lead Time** | +8% for >1 month | Multi-touch reminders for long lead |
+| **Day of Week** | Saturday: 14.66% | Expand weekend availability |
+| **Geography** | Island neighborhoods: 34% | Transportation assistance program |
+
+**Project Deliverables:**
+- `notebooks/healthcare_appointments_eda.ipynb` — Full EDA notebook
+- `notebooks/month1_curriculum_implementation.ipynb` — Curriculum notebook with EDA
+- `outputs/figures/` — Saved visualizations
+
+---
+
 ### Data Loading & EDA Components
+
 
 #### DataLoader Class (`src/data_loader.py`)
 
