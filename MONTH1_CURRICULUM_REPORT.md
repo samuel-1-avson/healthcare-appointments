@@ -32,17 +32,28 @@ The `healthcare-appointments` project is a **learning-by-building** platform tha
 
 ---
 
-### CRISP-DM Implementation
+### CRISP-DM Deep Dive
 
-The system follows the **Cross-Industry Standard Process for Data Mining** phases:
+**CRISP-DM** (Cross-Industry Standard Process for Data Mining) is the most widely-used methodology for data science and analytics projects. Developed in 1996 by a consortium including IBM, NCR, and Daimler, it provides a structured, iterative framework that guides projects from business problem to deployed solution.
+
+> [!IMPORTANT]
+> CRISP-DM is **iterative, not linear**. Each phase may require revisiting previous phases as new insights emerge.
 
 ```mermaid
-flowchart LR
-    A[Business Understanding] --> B[Data Understanding]
-    B --> C[Data Preparation]
-    C --> D[Modeling]
-    D --> E[Evaluation]
-    E --> F[Deployment]
+flowchart TB
+    subgraph "CRISP-DM Cycle"
+        A[1. Business Understanding] --> B[2. Data Understanding]
+        B --> C[3. Data Preparation]
+        C --> D[4. Modeling]
+        D --> E[5. Evaluation]
+        E --> F[6. Deployment]
+        F -.-> A
+        
+        B -.-> A
+        C -.-> B
+        D -.-> C
+        E -.-> D
+    end
     
     style A fill:#3b82f6,color:#fff
     style B fill:#22c55e,color:#fff
@@ -52,18 +63,180 @@ flowchart LR
     style F fill:#06b6d4,color:#fff
 ```
 
-#### Phase Mapping
+---
 
-| CRISP-DM Phase | System Component |
-|----------------|------------------|
-| **Business Understanding** | `config/config.yaml` defines business parameters: `$150 cost per no-show`, `20.2% current rate`, `15% target rate` |
-| **Data Understanding** | `notebooks/healthcare_appointments_eda.ipynb` — EDA notebook with data profiling |
-| **Data Preparation** | `src/data_cleaner.py`, `src/feature_engineer.py` |
-| **Modeling** | Later weeks (Week 5+) |
-| **Evaluation** | Later weeks (Week 5+) |
-| **Deployment** | Later weeks (Week 7+) |
+#### Phase 1: Business Understanding
+
+**Purpose:** Define the project objectives from a business perspective, then convert this knowledge into a data mining problem definition.
+
+| Activity | Healthcare Project Implementation |
+|----------|-----------------------------------|
+| **Determine Business Objectives** | Reduce appointment no-shows to improve resource utilization and patient outcomes |
+| **Assess Situation** | Current no-show rate is 20.2%, costing ~$3.35M annually at $150/no-show |
+| **Determine Data Mining Goals** | Build a predictive model to identify high-risk appointments for targeted intervention |
+| **Produce Project Plan** | 12-week curriculum with weekly deliverables |
+
+**Key Questions Answered:**
+- What does the business want to achieve? → Reduce no-shows from 20% to 15%
+- How will success be measured? → Reduction in no-show rate, ROI on interventions
+- What resources are available? → Historical appointment data (110K records)
+
+**Project Deliverables:**
+- `config/config.yaml` — Business parameters (cost per no-show, target rate)
+- `MONTH1_CURRICULUM_REPORT.md` — Project documentation
 
 ---
+
+#### Phase 2: Data Understanding
+
+**Purpose:** Collect initial data and proceed with activities to get familiar with it, identify data quality problems, discover initial insights, and detect interesting subsets.
+
+| Activity | Healthcare Project Implementation |
+|----------|-----------------------------------|
+| **Collect Initial Data** | Load 110,527 appointments from Kaggle dataset |
+| **Describe Data** | 14 columns including demographics, health conditions, scheduling info |
+| **Explore Data** | EDA reveals 20.19% no-show rate, age/SMS/lead-time patterns |
+| **Verify Data Quality** | Check for missing values, outliers, encoding issues |
+
+**Key Insights Discovered:**
+- Young adults (18-24) have highest no-show rate (24.01%)
+- SMS reminders reduce no-shows by 3.49 percentage points
+- Longer lead times correlate with higher no-shows (15.94% same-day vs 24% +1 month)
+
+**Project Deliverables:**
+- `notebooks/healthcare_appointments_eda.ipynb` — Exploratory data analysis
+- `test_day1.py` — Data loading verification script
+
+---
+
+#### Phase 3: Data Preparation
+
+**Purpose:** Construct the final dataset from initial raw data. This phase covers all activities to construct the dataset that will be fed into the modeling tools.
+
+| Activity | Healthcare Project Implementation |
+|----------|-----------------------------------|
+| **Select Data** | Choose relevant columns, filter invalid records |
+| **Clean Data** | Fix negative ages, standardize encodings, handle missing values |
+| **Construct Data** | Create derived features (lead_days, age_group, risk scores) |
+| **Integrate Data** | Merge patient history, neighborhood risk levels |
+| **Format Data** | Encode categorical variables, normalize numerics |
+
+**Data Cleaning Operations:**
+```python
+# From src/data_cleaner.py
+- clean_column_names()      # Standardize naming
+- clean_dates()             # Parse ScheduledDay, AppointmentDay
+- fix_age_outliers()        # Handle negative/extreme ages
+- fix_noshow_encoding()     # Convert 'Yes'/'No' to 1/0
+- handle_missing_values()   # Strategy-based imputation
+- remove_duplicates()       # Deduplicate by AppointmentID
+```
+
+**Feature Engineering (30+ features):**
+```python
+# From src/feature_engineer.py
+- create_lead_time()        # Days between scheduling and appointment
+- create_age_groups()       # Child, Teen, Young Adult, Adult, Senior
+- create_time_features()    # Weekday, hour, is_weekend
+- create_patient_history()  # Previous no-show rate, avg lead time
+- create_health_features()  # Chronic condition count
+- create_interaction_features() # sms_effective, age_lead_interaction
+```
+
+**Project Deliverables:**
+- `src/data_cleaner.py` — Data cleaning module
+- `src/feature_engineer.py` — Feature engineering module
+- `data/processed/appointments_cleaned.csv` — Cleaned dataset
+
+---
+
+#### Phase 4: Modeling
+
+**Purpose:** Select and apply various modeling techniques, calibrate their parameters to optimal values. Typically, there are several techniques for the same data mining problem type.
+
+| Activity | Healthcare Project Implementation (Week 5+) |
+|----------|---------------------------------------------|
+| **Select Modeling Techniques** | Logistic Regression, Random Forest, XGBoost, LightGBM |
+| **Generate Test Design** | Train/validation/test split (70/15/15), stratified by no-show |
+| **Build Model** | Train models with hyperparameter tuning |
+| **Assess Model** | Compare AUC-ROC, precision, recall, calibration |
+
+> [!NOTE]
+> Modeling is covered in **Week 5: Baseline Models** and **Week 6: Tuning & Interpretability**
+
+**Project Deliverables (Week 5+):**
+- `notebooks/week5_baseline_models.ipynb` — Model training
+- `notebooks/week6_tuning_interpretability.ipynb` — Hyperparameter tuning
+- `models/production/model.joblib` — Trained model artifact
+
+---
+
+#### Phase 5: Evaluation
+
+**Purpose:** Thoroughly evaluate the model to ensure it properly achieves the business objectives. Review the process and determine if there are any important factors that have been overlooked.
+
+| Activity | Healthcare Project Implementation (Week 5+) |
+|----------|---------------------------------------------|
+| **Evaluate Results** | Does the model meet the 15% target? Is it calibrated? |
+| **Review Process** | Are there data leakage issues? Missing segments? |
+| **Determine Next Steps** | Deploy, iterate, or collect more data |
+
+**Evaluation Metrics:**
+- **AUC-ROC**: Model discrimination ability
+- **Precision/Recall**: Trade-off between false positives and negatives
+- **Calibration**: Are probability estimates reliable?
+- **Business Impact**: Projected $860K annual savings
+
+**Project Deliverables (Week 5+):**
+- `evals/` — Evaluation reports and metrics
+- `notebooks/week12_evaluation.ipynb` — LLM/RAG evaluation with Ragas
+
+---
+
+#### Phase 6: Deployment
+
+**Purpose:** Deploy the model into the production environment. This could range from generating a report to implementing a repeatable data mining process across the enterprise.
+
+| Activity | Healthcare Project Implementation (Week 7+) |
+|----------|---------------------------------------------|
+| **Plan Deployment** | API design, infrastructure requirements |
+| **Plan Monitoring** | Track model drift, prediction quality |
+| **Produce Final Report** | Document model, limitations, usage guidelines |
+| **Review Project** | Lessons learned, opportunities for improvement |
+
+**Deployment Architecture:**
+```mermaid
+flowchart LR
+    A[Frontend] --> B[Nginx]
+    B --> C[FastAPI x3]
+    C --> D[ML Model]
+    C --> E[LLM/RAG]
+    C --> F[PostgreSQL]
+    C --> G[Redis Cache]
+```
+
+**Project Deliverables (Week 7+):**
+- `src/api/` — FastAPI application
+- `docker-compose.yaml` — Container orchestration
+- `frontend/` — React dashboard
+- `Dockerfile` — Production container
+
+---
+
+#### CRISP-DM in This Project: Phase Mapping
+
+| CRISP-DM Phase | Week(s) | System Components |
+|----------------|---------|-------------------|
+| **1. Business Understanding** | Week 1 | `config/config.yaml`, project requirements |
+| **2. Data Understanding** | Week 1-2 | `healthcare_appointments_eda.ipynb`, SQL analytics |
+| **3. Data Preparation** | Week 3 | `data_cleaner.py`, `feature_engineer.py` |
+| **4. Modeling** | Week 5-6 | `week5_baseline_models.ipynb`, `week6_tuning.ipynb` |
+| **5. Evaluation** | Week 5-6, 12 | Metrics, Ragas evaluation |
+| **6. Deployment** | Week 7+ | FastAPI, Docker, Kubernetes |
+
+---
+
+
 
 ### Data Loading & EDA Components
 
