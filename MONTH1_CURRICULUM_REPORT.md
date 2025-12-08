@@ -662,7 +662,267 @@ business:
 
 ---
 
-## Week 2: SQL for Analytics
+## Week 2: SQL for Analytics Deep Dive
+
+**SQL (Structured Query Language)** is the foundation of data analytics. It enables analysts to extract, transform, and analyze data directly from databases—often the most efficient way to work with large datasets.
+
+> [!IMPORTANT]
+> SQL is **declarative**: you describe *what* you want, not *how* to get it. The database engine optimizes execution.
+
+```mermaid
+flowchart LR
+    subgraph "SQL Analytics Workflow"
+        A[Business Question] --> B[Write Query]
+        B --> C[Execute on DB]
+        C --> D[Review Results]
+        D --> E[Refine Query]
+        E --> F[Export/Visualize]
+    end
+    
+    style A fill:#3b82f6,color:#fff
+    style B fill:#22c55e,color:#fff
+    style C fill:#eab308,color:#000
+    style D fill:#ef4444,color:#fff
+    style E fill:#8b5cf6,color:#fff
+    style F fill:#06b6d4,color:#fff
+```
+
+---
+
+### SQL Fundamentals for Analytics
+
+#### SELECT Statement Structure
+
+```sql
+SELECT columns           -- What to retrieve
+FROM table               -- Where to get it
+WHERE condition          -- Row filter (before grouping)
+GROUP BY columns         -- How to aggregate
+HAVING condition         -- Group filter (after grouping)
+ORDER BY columns         -- How to sort
+LIMIT n;                 -- How many rows
+```
+
+#### Execution Order (Important!)
+
+SQL executes in a specific order that differs from how it's written:
+
+| Step | Clause | Purpose |
+|------|--------|---------|
+| 1 | `FROM` | Identify source table(s) |
+| 2 | `WHERE` | Filter individual rows |
+| 3 | `GROUP BY` | Create groups |
+| 4 | `HAVING` | Filter groups |
+| 5 | `SELECT` | Choose columns, compute values |
+| 6 | `ORDER BY` | Sort results |
+| 7 | `LIMIT` | Restrict output rows |
+
+---
+
+### Aggregate Functions
+
+Aggregate functions compute a single value from multiple rows:
+
+| Function | Purpose | Example |
+|----------|---------|---------|
+| `COUNT(*)` | Count all rows | `SELECT COUNT(*) FROM appointments` |
+| `COUNT(DISTINCT col)` | Count unique values | `COUNT(DISTINCT PatientId)` |
+| `SUM(col)` | Sum numeric values | `SUM(No_Show)` |
+| `AVG(col)` | Calculate mean | `AVG(No_Show) * 100` |
+| `MIN(col)` | Find minimum | `MIN(Age)` |
+| `MAX(col)` | Find maximum | `MAX(Lead_Days)` |
+| `ROUND(value, n)` | Round to n decimals | `ROUND(AVG(No_Show) * 100, 2)` |
+
+**Healthcare Example:**
+```sql
+SELECT 
+    COUNT(*) as total_appointments,           -- 110,527
+    SUM(No_Show) as total_no_shows,           -- 22,319
+    ROUND(AVG(No_Show) * 100, 2) as rate,     -- 20.19
+    COUNT(DISTINCT PatientId) as patients     -- 62,299
+FROM appointments;
+```
+
+---
+
+### GROUP BY and HAVING
+
+**GROUP BY** creates groups for aggregation:
+
+```sql
+-- No-show rate by age group
+SELECT 
+    Age_Group,
+    COUNT(*) as appointments,
+    ROUND(AVG(No_Show) * 100, 2) as no_show_rate
+FROM appointments
+GROUP BY Age_Group
+ORDER BY no_show_rate DESC;
+```
+
+**HAVING** filters groups (unlike WHERE which filters rows):
+
+```sql
+-- Only neighborhoods with 100+ appointments
+SELECT 
+    neighbourhood,
+    COUNT(*) as appointments,
+    ROUND(AVG(No_Show) * 100, 2) as no_show_rate
+FROM appointments
+GROUP BY neighbourhood
+HAVING COUNT(*) >= 100    -- Filter AFTER grouping
+ORDER BY no_show_rate DESC;
+```
+
+> [!TIP]
+> Use `WHERE` for row-level filters, `HAVING` for aggregate-level filters.
+
+---
+
+### CASE Statements
+
+**CASE** enables conditional logic within SQL:
+
+```sql
+-- Create custom categories
+SELECT 
+    CASE 
+        WHEN Age < 18 THEN 'Youth'
+        WHEN Age >= 60 THEN 'Senior'
+        ELSE 'Adult'
+    END as age_segment,
+    COUNT(*) as appointments,
+    ROUND(AVG(No_Show) * 100, 2) as no_show_rate
+FROM appointments
+GROUP BY age_segment;
+```
+
+**Healthcare Example - Lead Time Buckets:**
+```sql
+SELECT 
+    CASE 
+        WHEN Lead_Days = 0 THEN 'Same Day'
+        WHEN Lead_Days BETWEEN 1 AND 7 THEN '1-7 Days'
+        WHEN Lead_Days BETWEEN 8 AND 14 THEN '1-2 Weeks'
+        WHEN Lead_Days BETWEEN 15 AND 30 THEN '2-4 Weeks'
+        ELSE 'Over 1 Month'
+    END as lead_category,
+    ROUND(AVG(No_Show) * 100, 2) as no_show_rate
+FROM appointments
+GROUP BY lead_category;
+```
+
+---
+
+### Subqueries
+
+**Subqueries** are queries nested inside other queries:
+
+**Scalar Subquery (returns single value):**
+```sql
+-- Compare each group to overall baseline
+SELECT 
+    Age_Group,
+    ROUND(AVG(No_Show) * 100, 2) as no_show_rate,
+    ROUND(AVG(No_Show) * 100 - 
+          (SELECT AVG(No_Show) * 100 FROM appointments), 2) as diff_from_baseline
+FROM appointments
+GROUP BY Age_Group;
+```
+
+**Table Subquery (returns a table):**
+```sql
+-- Find high-risk neighborhoods
+SELECT * FROM (
+    SELECT 
+        neighbourhood,
+        ROUND(AVG(No_Show) * 100, 2) as no_show_rate
+    FROM appointments
+    GROUP BY neighbourhood
+) subq
+WHERE no_show_rate > 25;
+```
+
+---
+
+### Window Functions
+
+**Window functions** perform calculations across related rows without collapsing them:
+
+```sql
+SELECT 
+    neighbourhood,
+    COUNT(*) as appointments,
+    ROUND(AVG(No_Show) * 100, 2) as no_show_rate,
+    RANK() OVER (ORDER BY AVG(No_Show) DESC) as risk_rank
+FROM appointments
+GROUP BY neighbourhood
+HAVING COUNT(*) >= 100;
+```
+
+**Common Window Functions:**
+
+| Function | Purpose | Example |
+|----------|---------|---------|
+| `RANK()` | Rank with gaps | `RANK() OVER (ORDER BY rate DESC)` |
+| `DENSE_RANK()` | Rank without gaps | `DENSE_RANK() OVER (...)` |
+| `ROW_NUMBER()` | Unique row number | `ROW_NUMBER() OVER (...)` |
+| `LAG(col, n)` | Previous row value | `LAG(rate, 1) OVER (ORDER BY date)` |
+| `LEAD(col, n)` | Next row value | `LEAD(rate, 1) OVER (...)` |
+| `SUM() OVER` | Running total | `SUM(count) OVER (ORDER BY date)` |
+
+**Window Function Anatomy:**
+```sql
+FUNCTION_NAME(column) OVER (
+    PARTITION BY grouping_column    -- Optional: restart per group
+    ORDER BY ordering_column        -- How to order within partition
+)
+```
+
+---
+
+### JOINs (Combining Tables)
+
+| Join Type | Description | Use Case |
+|-----------|-------------|----------|
+| `INNER JOIN` | Only matching rows | Patients with appointments |
+| `LEFT JOIN` | All left + matching right | All patients, even without appointments |
+| `RIGHT JOIN` | All right + matching left | All appointments, even without patient data |
+| `FULL OUTER JOIN` | All rows from both | Complete picture of both tables |
+
+**Example:**
+```sql
+-- Join appointments with patient details
+SELECT 
+    a.AppointmentID,
+    p.PatientName,
+    a.No_Show
+FROM appointments a
+INNER JOIN patients p ON a.PatientId = p.PatientId;
+```
+
+---
+
+### Query Performance Best Practices
+
+| Practice | Why | Example |
+|----------|-----|---------|
+| **Filter early** | Reduce rows processed | Put selective `WHERE` first |
+| **Use indexes** | Speed up lookups | Index on `PatientId`, dates |
+| **Avoid SELECT \*** | Only get needed columns | `SELECT col1, col2` not `SELECT *` |
+| **Limit results** | Test on subset first | `LIMIT 100` during development |
+| **Use EXPLAIN** | Understand execution plan | `EXPLAIN SELECT ...` |
+
+**Healthcare Query Performance:**
+
+| Query | Rows Scanned | Execution Time |
+|-------|--------------|----------------|
+| Overall Metrics | 110,527 | 31.41ms |
+| Neighborhood Analysis | 110,527 | 93.92ms |
+| Age Group Analysis | 110,527 | 54.56ms |
+| **Average** | 110,527 | **55.77ms** |
+
+---
 
 ### Learning Outcomes Achieved
 
@@ -676,6 +936,7 @@ business:
 | Query Performance | All < 100ms on 110K rows | ✅ Complete |
 
 ---
+
 
 ### SQL Analytics Suite
 
