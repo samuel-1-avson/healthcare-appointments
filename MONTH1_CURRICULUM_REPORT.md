@@ -776,6 +776,47 @@ flowchart LR
 
 ### SQL Fundamentals for Analytics
 
+#### The SQL Mental Model: Think in Tables → Groups → Results
+
+**Key Insight:** SQL works by progressively transforming tables. Think of it as a pipeline:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         SQL QUERY PROCESSING PIPELINE                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  110,527 rows    WHERE Age > 18    GROUP BY     SELECT        ORDER BY      │
+│  ┌───────────┐   ────────────────> ┌─────────┐  ────────────> ┌───────────┐ │
+│  │ Full Table│ → │ 98,234 rows │ → │ 5 Groups│ → │ 5 Rows   │ → │ Sorted   │ │
+│  └───────────┘   └─────────────┘   └─────────┘  └───────────┘  └───────────┘ │
+│                                                                              │
+│  FROM          → WHERE (filter)   → GROUP BY   → SELECT      → ORDER BY     │
+│  appointments    Age > 18           Age_Group    COUNT, AVG     rate DESC   │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### SQL vs Python Comparison
+
+| Task | SQL Approach | Python (pandas) Approach |
+|------|--------------|--------------------------|
+| **Filter rows** | `WHERE Age > 18` | `df[df['Age'] > 18]` |
+| **Select columns** | `SELECT Age, Name` | `df[['Age', 'Name']]` |
+| **Group & aggregate** | `GROUP BY Age_Group` | `df.groupby('Age_Group')` |
+| **Sort** | `ORDER BY Age DESC` | `df.sort_values('Age', ascending=False)` |
+| **Count** | `COUNT(*)` | `len(df)` or `df.count()` |
+| **Average** | `AVG(No_Show)` | `df['No_Show'].mean()` |
+
+**When to use SQL:**
+- Data is in a database (most enterprise data)
+- Dataset is too large for memory
+- Need to join multiple tables
+- Want reproducible, version-controlled queries
+
+---
+
 #### SELECT Statement Structure
 
 ```sql
@@ -2309,6 +2350,77 @@ flowchart LR
 
 ---
 
+### Understanding Unsupervised Learning: The Intuition
+
+> [!IMPORTANT]
+> **What is Unsupervised Learning?**
+> 
+> Unlike supervised learning (learning with answers), unsupervised learning is like exploring without a guide. The algorithm finds patterns, groupings, and structures in data **without being told what to look for**.
+> 
+> **Analogy:** Imagine sorting a bag of mixed fruit. No one tells you how to sort—you naturally group by color, size, or shape. That's unsupervised learning.
+
+---
+
+#### When to Use Unsupervised Learning
+
+| Use Case | Algorithm | Healthcare Example |
+|----------|-----------|-------------------|
+| **Customer segmentation** | K-Means | Group patients by risk profile |
+| **Anomaly detection** | DBSCAN | Find unusual appointment patterns |
+| **Market basket analysis** | Apriori | Which conditions appear together? |
+| **Feature reduction** | PCA | Simplify 30 features to 5 |
+| **Visualization** | t-SNE | See patient clusters in 2D |
+
+---
+
+#### Clustering Intuition: How K-Means "Thinks"
+
+**Goal:** Find K natural groupings in the data.
+
+**Process:**
+1. **Initialize:** Randomly place K center points (centroids)
+2. **Assign:** Each data point joins the nearest centroid's cluster
+3. **Update:** Move each centroid to the center of its cluster
+4. **Repeat:** Steps 2-3 until centroids stop moving
+
+**Visual Example:**
+
+```
+    ITERATION 1               ITERATION 2               FINAL
+    (Random cenroids)         (Updated)                 (Converged)
+    
+    •  •       ★              •  •       ★              •  • ★ •    
+       •  •   • • •              •  •   • • •              •  •   • • •
+    •     •  • •   •          •  ★  •  • •   •          •  ★  •  • •   •
+       ★ •  •  •   •             •  •  •    ★             •  •  •    ★
+    •  •  •                   •  •  •                   •  •  •       
+    
+    ★ = Centroid             ★ moves to cluster center  ★ = Final cluster center
+```
+
+---
+
+#### How Many Clusters? The Elbow Method
+
+```
+    Inertia (within-cluster distance)
+         │
+     2000│●
+         │ ●
+     1500│   ●
+         │     ●
+     1000│       ●──────── "Elbow" = optimal K
+         │         ● ● ● ●
+      500│
+         └─────────────────────
+             2  3  4  5  6  7  8
+                  Number of Clusters (K)
+```
+
+**Rule:** Choose K at the "elbow" where adding more clusters gives diminishing returns.
+
+---
+
 ### Types of Unsupervised Learning
 
 | Type | Purpose | Healthcare Example |
@@ -2316,6 +2428,7 @@ flowchart LR
 | **Clustering** | Group similar data points | Patient segments by behavior |
 | **Association Rules** | Find item relationships | Treatment combinations |
 | **Dimensionality Reduction** | Simplify complex data | Reduce features for visualization |
+
 
 ---
 
