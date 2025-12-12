@@ -157,6 +157,9 @@ COPY --chown=${APP_USER}:${APP_USER} scripts/ ${APP_HOME}/scripts/
 RUN chmod +x ${APP_HOME}/scripts/*.sh
 RUN mv ${APP_HOME}/scripts/docker-entrypoint.sh ${APP_HOME}/docker-entrypoint.sh
 
+# Copy ML model files
+COPY --chown=${APP_USER}:${APP_USER} models/ ${APP_HOME}/models/
+
 # Switch to non-root user
 USER ${APP_USER}
 
